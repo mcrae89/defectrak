@@ -1,0 +1,51 @@
+{
+    "name": "bug-tracker-frontend",
+    "version": "1.0.0",
+    "description": "React frontend for Bug Tracker",
+    "main": "index.js",
+    "scripts": {
+        "start": "react-scripts start",
+        "build": "react-scripts build",
+        "test": "react-scripts test",
+        "eject": "react-scripts eject"
+    },
+    "dependencies": {
+        "@svgr/plugin-svgo": "6.0.0",
+        "@svgr/webpack": "6.0.0",
+        "css-select": "5.1.0",
+        "css-what": "6.1.0",
+        "postcss": "8.5.1",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-scripts": "5.0.1",
+        "resolve-url-loader": "5.0.0",
+        "svgo": "2.8.0",
+        "web-vitals": "3.3.1"
+    },
+    "overrides": {
+        "react-scripts": {
+            "resolve-url-loader": "5.0.0",
+            "postcss": "8.5.1"
+        },
+        "@svgr/webpack": "6.0.0",
+        "@svgr/plugin-svgo": "6.0.0",
+        "svgo": "2.8.0",
+        "css-select": "5.1.0",
+        "css-what": "6.1.0"
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    },
+    "devDependencies": {
+        "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+    }
+}
