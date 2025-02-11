@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/statuses")
 public class StatusController {
@@ -37,14 +39,14 @@ public class StatusController {
 
     // POST endpoint to create a new status
     @PostMapping
-    public ResponseEntity<Status> createStatus(@RequestBody Status status) {
+    public ResponseEntity<Status> createStatus(@Valid @RequestBody Status status) {
         Status created = statusRepository.save(status);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     // PUT endpoint to update an existing status
     @PutMapping("/{id}")
-    public ResponseEntity<Status> updateStatus(@PathVariable Long id, @RequestBody Status statusDetails) {
+    public ResponseEntity<Status> updateStatus(@PathVariable Long id, @Valid @RequestBody Status statusDetails) {
         Optional<Status> existingStatusOpt = statusRepository.findById(id);
         if (!existingStatusOpt.isPresent()) {
             return ResponseEntity.notFound().build();

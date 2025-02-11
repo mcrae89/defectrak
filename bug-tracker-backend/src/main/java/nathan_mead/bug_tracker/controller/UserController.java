@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -43,7 +45,7 @@ public class UserController {
 
     // POST endpoint to create a new user using UserDto
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody UserDto userDto) {
+    public ResponseEntity<User> createUser(@Valid @RequestBody UserDto userDto) {
         User user = new User();
         user.setEmail(userDto.getEmail());
         user.setPassword(userDto.getPassword());
@@ -65,7 +67,7 @@ public class UserController {
 
     // PUT endpoint to update an existing user using UserDto
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody UserDto userDto) {
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody UserDto userDto) {
         Optional<User> userOpt = userRepository.findById(id);
         if (!userOpt.isPresent()) {
             return ResponseEntity.notFound().build();

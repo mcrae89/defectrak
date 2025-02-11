@@ -2,14 +2,14 @@
 DROP TABLE IF EXISTS priorities;
 CREATE TABLE priorities (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    status VARCHAR(100) NOT NULL
+    name VARCHAR(25) NOT NULL,
+    status VARCHAR(25) NOT NULL
 );
 
 DROP TABLE IF EXISTS user_roles;
 CREATE TABLE user_roles (
     id SERIAL PRIMARY KEY,
-    role VARCHAR(255) NOT NULL
+    role VARCHAR(25) NOT NULL
 );
 
 DROP TABLE IF EXISTS users;
@@ -24,7 +24,7 @@ CREATE TABLE users (
 DROP TABLE IF EXISTS statuses;
 CREATE TABLE statuses (
     id SERIAL PRIMARY KEY,
-    status_label VARCHAR(255) NOT NULL
+    status_label VARCHAR(25) NOT NULL
 );
 
 DROP TABLE IF EXISTS bugs;

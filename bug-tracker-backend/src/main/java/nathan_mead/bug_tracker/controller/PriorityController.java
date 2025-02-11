@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/api/priorities")
 public class PriorityController {
@@ -37,14 +39,14 @@ public class PriorityController {
 
     // POST endpoint to create a new Priority
     @PostMapping
-    public ResponseEntity<Priority> createPriority(@RequestBody Priority priority) {
+    public ResponseEntity<Priority> createPriority(@Valid @RequestBody Priority priority) {
         Priority created = priorityRepository.save(priority);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     // PUT endpoint to update an existing Priority
     @PutMapping("/{id}")
-    public ResponseEntity<Priority> updatePriority(@PathVariable Long id, @RequestBody Priority priorityDetails) {
+    public ResponseEntity<Priority> updatePriority(@PathVariable Long id, @Valid @RequestBody Priority priorityDetails) {
         Optional<Priority> existingPriorityOpt = priorityRepository.findById(id);
         if (!existingPriorityOpt.isPresent()) {
             return ResponseEntity.notFound().build();

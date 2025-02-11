@@ -1,6 +1,8 @@
 package nathan_mead.bug_tracker.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "statuses")
@@ -9,12 +11,14 @@ public class Status {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Validation annotations:
+    @NotBlank(message = "Status label cannot be blank")
+    @Size(max = 25, message = "Status label must be at most 25 characters")
     private String statusLabel;
 
     public Status() {}
 
     public Status(String statusLabel) {
-        // Using the setter in the constructor ensures any logic in the setter is applied.
         setStatusLabel(statusLabel);
     }
 

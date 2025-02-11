@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/api/user-roles")
 public class UserRoleController {
@@ -37,14 +39,14 @@ public class UserRoleController {
 
     // POST endpoint to create a new user role
     @PostMapping
-    public ResponseEntity<UserRole> createUserRole(@RequestBody UserRole userRole) {
+    public ResponseEntity<UserRole> createUserRole(@Valid @RequestBody UserRole userRole) {
         UserRole created = userRoleRepository.save(userRole);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     // PUT endpoint to update an existing user role
     @PutMapping("/{id}")
-    public ResponseEntity<UserRole> updateUserRole(@PathVariable Long id, @RequestBody UserRole userRoleDetails) {
+    public ResponseEntity<UserRole> updateUserRole(@PathVariable Long id, @Valid @RequestBody UserRole userRoleDetails) {
         Optional<UserRole> existingUserRoleOpt = userRoleRepository.findById(id);
         if (!existingUserRoleOpt.isPresent()) {
             return ResponseEntity.notFound().build();

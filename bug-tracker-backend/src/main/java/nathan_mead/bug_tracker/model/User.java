@@ -1,6 +1,8 @@
 package nathan_mead.bug_tracker.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "users")
@@ -8,6 +10,9 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    // Validation annotations:
+    @NotBlank(message = "Email cannot be blank")
+    @Size(max = 25, message = "Email must be at most 25 characters")
     private String email;
     private String password;
     @ManyToOne
