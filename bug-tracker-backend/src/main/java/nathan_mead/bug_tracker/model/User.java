@@ -34,7 +34,6 @@ public class User {
         return password;
     }
 
-
     public UserRole getRole() {
         return role;
     }

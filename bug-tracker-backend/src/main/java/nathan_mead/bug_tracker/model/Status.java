@@ -8,23 +8,25 @@ public class Status {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String status_label;
+
+    private String statusLabel;
 
     public Status() {}
 
-    public Status(String status_label) {
-        setStatus_label(status_label);
+    public Status(String statusLabel) {
+        // Using the setter in the constructor ensures any logic in the setter is applied.
+        setStatusLabel(statusLabel);
     }
 
     public Long getId() {
         return id;
     }
 
-    public String getStatus_label() {
-        return status_label;
+    public String getStatusLabel() {
+        return statusLabel;
     }
 
-    public void setStatus_label(String status_label) {
-        this.status_label = status_label;
+    public void setStatusLabel(String statusLabel) {
+        this.statusLabel = statusLabel;
     }
 }

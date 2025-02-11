@@ -10,88 +10,97 @@ public class Bug {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String title;
+
     @Column(length = 4000)
     private String description;
+
+    // Associations to other entities
     @ManyToOne
-    @JoinColumn(name = "priority_id", nullable = false)
+    @JoinColumn(name = "priority_id")
     private Priority priority;
+
     @ManyToOne
-    @JoinColumn(name = "status_id", nullable = false)
+    @JoinColumn(name = "status_id")
     private Status status;
+
     @ManyToOne
-    @JoinColumn(name = "assignee_user_id", nullable = true)
+    @JoinColumn(name = "assignee_id")
     private User assignee;
-    private LocalDateTime createdAt = LocalDateTime.now();
+
+    private LocalDateTime createdAt;
     @ManyToOne
-    @JoinColumn(name = "created_by_user_id", nullable = false)
-    private User created_by;
+    @JoinColumn(name = "created_by_user_id")
+    private User createdBy;
 
-    // Constructors, getters and setters
-    public Bug() {}
-
-    public Bug(String title, String description, Priority priority, Status status, User assignee, User created_by) {
-        setTitle(title);
-        setDescription(description);
-        setPriority(priority);
-        setStatus(status);
-        setAssignee(assignee);
-        setCreated_by(created_by);
+    public Bug() {
+        this.createdAt = LocalDateTime.now();
     }
+
+    // Getters and setters
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getTitle() {
         return title;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public Priority getPriority() {
-        return priority;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public User getAssignee() {
-        return assignee;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public User getCreated_by() {
-        return created_by;
-    }
-
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public void setDescription(String description) {
         this.description = description;
     }
 
+    public Priority getPriority() {
+        return priority;
+    }
+
     public void setPriority(Priority priority) {
         this.priority = priority;
+    }
+
+    public Status getStatus() {
+        return status;
     }
 
     public void setStatus(Status status) {
         this.status = status;
     }
 
+    public User getAssignee() {
+        return assignee;
+    }
+
     public void setAssignee(User assignee) {
         this.assignee = assignee;
     }
 
-    public void setCreated_by(User created_by) {
-        this.created_by = created_by;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
     }
 }
