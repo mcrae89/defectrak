@@ -20,6 +20,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/bugs")
 public class BugController {
@@ -54,7 +56,7 @@ public class BugController {
 
     // POST endpoint to create a new bug using BugDto
     @PostMapping
-    public ResponseEntity<Bug> createBug(@RequestBody BugDto bugDto) {
+    public ResponseEntity<Bug> createBug(@Valid @RequestBody BugDto bugDto) {
         Bug bug = new Bug();
         bug.setTitle(bugDto.getTitle());
         bug.setDescription(bugDto.getDescription());
@@ -110,7 +112,7 @@ public class BugController {
 
     // PUT endpoint to update an existing bug using BugDto
     @PutMapping("/{id}")
-    public ResponseEntity<Bug> updateBug(@PathVariable Long id, @RequestBody BugDto bugDto) {
+    public ResponseEntity<Bug> updateBug(@PathVariable Long id, @Valid @RequestBody BugDto bugDto) {
         Optional<Bug> bugOpt = bugRepository.findById(id);
         if (!bugOpt.isPresent()) {
             return ResponseEntity.notFound().build();

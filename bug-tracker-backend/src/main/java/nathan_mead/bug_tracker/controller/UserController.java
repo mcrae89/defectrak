@@ -11,11 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/users")
@@ -28,6 +29,14 @@ public class UserController {
 
     @Autowired
     private UserRoleRepository userRoleRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    // Helper function to hash the password using BCrypt
+    private String hashPassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
+    }
 
     // GET endpoint to list all users
     @GetMapping
@@ -44,11 +53,15 @@ public class UserController {
     }
 
     // POST endpoint to create a new user using UserDto
-    @PostMapping
+    @PostMapping("/register")
     public ResponseEntity<User> createUser(@Valid @RequestBody UserDto userDto) {
+        logger.info("new user = {}", userDto);
+        logger.info("Registering new user at /api/users/register");
         User user = new User();
         user.setEmail(userDto.getEmail());
-        user.setPassword(userDto.getPassword());
+        user.setFirstName(userDto.getFirstName());
+        user.setLastName(userDto.getLastName());
+        user.setPassword(hashPassword(userDto.getPassword()));
 
         // Set User Role if provided
         if (userDto.getUserRoleId() != null) {
@@ -65,6 +78,19 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
+    // PUT endpoint to update an existing users password
+    @PutMapping("/{id}/password")
+    public ResponseEntity<User> updateUserPassword(@PathVariable Long id, @RequestBody String newPassword) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (!userOpt.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        User user = userOpt.get();
+        user.setPassword(hashPassword(newPassword));
+        User updatedUser = userRepository.save(user);
+        return ResponseEntity.ok(updatedUser);
+    }
+
     // PUT endpoint to update an existing user using UserDto
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody UserDto userDto) {
@@ -76,7 +102,8 @@ public class UserController {
 
         // Update basic fields
         user.setEmail(userDto.getEmail());
-        user.setPassword(userDto.getPassword());
+        user.setFirstName(userDto.getFirstName());
+        user.setLastName(userDto.getLastName());
 
         // Update User Role if user role is provided
         if (userDto.getUserRoleId() != null) {

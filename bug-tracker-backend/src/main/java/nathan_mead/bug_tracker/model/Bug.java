@@ -2,6 +2,8 @@ package nathan_mead.bug_tracker.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "bugs")
@@ -11,9 +13,12 @@ public class Bug {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Title is required")
+    @Size(max = 255, message = "Title must be less than 255 characters")
     private String title;
 
-    @Column(length = 4000)
+    @NotBlank(message = "Title is required")
+    @Size(max = 4000, message = "Title must be less than 255 characters")
     private String description;
 
     // Associations to other entities
