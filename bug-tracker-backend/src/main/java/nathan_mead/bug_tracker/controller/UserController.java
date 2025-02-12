@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
@@ -81,11 +82,21 @@ public class UserController {
     // PUT endpoint to update an existing users password
     @PutMapping("/{id}/password")
     public ResponseEntity<User> updateUserPassword(@PathVariable Long id, @RequestBody String newPassword) {
+        String authenticatedUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+
         Optional<User> userOpt = userRepository.findById(id);
         if (!userOpt.isPresent()) {
             return ResponseEntity.notFound().build();
         }
+
         User user = userOpt.get();
+
+        // Compare the authenticated user's email with the user's email in the DB
+        if (!user.getEmail().equals(authenticatedUserEmail)) {
+            // If they don't match, the user is trying to change someone else's password.
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         user.setPassword(hashPassword(newPassword));
         User updatedUser = userRepository.save(user);
         return ResponseEntity.ok(updatedUser);
@@ -101,10 +112,10 @@ public class UserController {
         User user = userOpt.get();
 
         // Update basic fields
-        user.setEmail(userDto.getEmail());
         user.setFirstName(userDto.getFirstName());
         user.setLastName(userDto.getLastName());
 
+        logger.info("new user = {}", userDto);
         // Update User Role if user role is provided
         if (userDto.getUserRoleId() != null) {
             Optional<UserRole> userRoleOpt = userRoleRepository.findById(userDto.getUserRoleId());
