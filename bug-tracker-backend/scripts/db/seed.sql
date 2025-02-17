@@ -8,7 +8,7 @@ VALUES
 ,('fake@email.com', 'Jayme', 'Mead', '$2a$10$ipi/FA2Bqq0Y69rl8T.IneoOT7wA7TNycWjamZ55PFKZiUxS0CoEK',2)
 ON CONFLICT DO NOTHING;
 
-INSERT INTO priorities (name, status)
+INSERT INTO priorities ([level], status)
 VALUES
 ('low', 'Active'), ('medium', 'Active'), ('high', 'Active');
 

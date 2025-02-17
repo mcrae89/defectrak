@@ -13,7 +13,7 @@ public class Priority {
     // Validation annotations:
     @NotBlank(message = "Priority name cannot be blank")
     @Size(max = 25, message = "Priority name must be at most 25 characters")
-    private String name;
+    private String level;
     // Validation annotations:
     @NotBlank(message = "Priority status cannot be blank")
     @Size(max = 25, message = "Priority status must be at most 25 characters")
@@ -21,8 +21,8 @@ public class Priority {
 
     public Priority() {}
 
-    public Priority(String name, String status) {
-        setName(name);
+    public Priority(String level, String status) {
+        setLevel(level);
         setStatus(status);
     }
 
@@ -30,16 +30,16 @@ public class Priority {
         return id;
     }
 
-    public String getName() {
-        return name;
+    public String getLevel() {
+        return level;
     }
 
     public String getStatus() {
         return status;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setLevel(String level) {
+        this.level = level;
     }
 
     public void setStatus(String status) {

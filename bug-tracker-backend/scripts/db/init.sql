@@ -2,7 +2,7 @@
 DROP TABLE IF EXISTS priorities;
 CREATE TABLE priorities (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(25) NOT NULL,
+    level VARCHAR(25) NOT NULL,
     status VARCHAR(25) NOT NULL
 );
 

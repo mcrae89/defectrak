@@ -52,7 +52,7 @@ public class PriorityController {
             return ResponseEntity.notFound().build();
         }
         Priority existingPriority = existingPriorityOpt.get();
-        existingPriority.setName(priorityDetails.getName());
+        existingPriority.setLevel(priorityDetails.getLevel());
         existingPriority.setStatus(priorityDetails.getStatus());
         Priority updated = priorityRepository.save(existingPriority);
         return ResponseEntity.ok(updated);
