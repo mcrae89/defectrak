@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,9 +41,15 @@ public class UserController {
     }
 
     // GET endpoint to list all users
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public List<User> getAllUsers() {
         return userRepository.findAll();
+    }
+
+    @GetMapping("/active")
+    public List<User> getActiveUsers() {
+        return userRepository.findAllActive();
     }
 
     // GET endpoint to get a user by ID
@@ -63,6 +70,7 @@ public class UserController {
         user.setFirstName(userDto.getFirstName());
         user.setLastName(userDto.getLastName());
         user.setPassword(hashPassword(userDto.getPassword()));
+        user.setStatus(userDto.getStatus());
 
         // Set User Role if provided
         if (userDto.getUserRoleId() != null) {
@@ -111,13 +119,29 @@ public class UserController {
         }
         User user = userOpt.get();
 
+        // Get the authenticated user's email and authorities
+        String authenticatedUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equalsIgnoreCase("ROLE_ADMIN"));
+
+        // Allow update if the user is an admin or if the user is updating their own record
+        if (!isAdmin && !user.getEmail().equals(authenticatedUserEmail)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         // Update basic fields
+        user.setEmail(userDto.getEmail());
         user.setFirstName(userDto.getFirstName());
         user.setLastName(userDto.getLastName());
+        user.setStatus(userDto.getStatus());
 
         logger.info("new user = {}", userDto);
         // Update User Role if user role is provided
         if (userDto.getUserRoleId() != null) {
+            if (!isAdmin) {
+                // Non-admin users are not permitted to change roles.
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
             Optional<UserRole> userRoleOpt = userRoleRepository.findById(userDto.getUserRoleId());
             if (userRoleOpt.isPresent()) {
                 user.setRole(userRoleOpt.get());
@@ -131,6 +155,7 @@ public class UserController {
     }
 
     // DELETE endpoint to delete a user by ID
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         Optional<User> userOpt = userRepository.findById(id);

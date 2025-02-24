@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,9 +25,15 @@ public class StatusController {
     private StatusRepository statusRepository;
 
     // GET endpoint to list all statuses
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public List<Status> getAllStatuses() {
         return statusRepository.findAll();
+    }
+
+    @GetMapping("/active")
+    public List<Status> getActiveStatuses() {
+        return statusRepository.findAllActive();
     }
 
     // GET endpoint to return a specific status by ID
@@ -38,6 +45,7 @@ public class StatusController {
     }
 
     // POST endpoint to create a new status
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<Status> createStatus(@Valid @RequestBody Status status) {
         Status created = statusRepository.save(status);
@@ -45,6 +53,7 @@ public class StatusController {
     }
 
     // PUT endpoint to update an existing status
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Status> updateStatus(@PathVariable Long id, @Valid @RequestBody Status statusDetails) {
         Optional<Status> existingStatusOpt = statusRepository.findById(id);
@@ -53,11 +62,13 @@ public class StatusController {
         }
         Status existingStatus = existingStatusOpt.get();
         existingStatus.setStatusLabel(statusDetails.getStatusLabel());
+        existingStatus.setStatus(statusDetails.getStatus());
         Status updated = statusRepository.save(existingStatus);
         return ResponseEntity.ok(updated);
     }
 
     // DELETE endpoint to delete an existing status
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteStatus(@PathVariable Long id) {
         Optional<Status> existingStatusOpt = statusRepository.findById(id);

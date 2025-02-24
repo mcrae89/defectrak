@@ -6,6 +6,7 @@ import nathan_mead.bug_tracker.model.User;
 import nathan_mead.bug_tracker.repository.PriorityRepository;
 import nathan_mead.bug_tracker.repository.UserRoleRepository;
 import nathan_mead.bug_tracker.repository.UserRepository;
+import nathan_mead.bug_tracker.config.SecurityConfig;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -17,7 +18,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.junit.jupiter.api.BeforeEach;
-
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -27,9 +30,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
-
-@WithMockUser(username = "user@example.com")
+@AutoConfigureMockMvc(addFilters = true)
 @WebMvcTest(PriorityController.class)
+@Import(SecurityConfig.class)
 public class PriorityControllerTest {
 
     @Autowired
@@ -47,36 +50,22 @@ public class PriorityControllerTest {
     @MockBean
     private PasswordEncoder passwordEncoder;
 
-    @BeforeEach
-    public void setupUserRepository() {
-        // Create a dummy UserRole (if needed)
-        UserRole dummyRole = new UserRole("USER");
-        ReflectionTestUtils.setField(dummyRole, "id", 1L);
-        Mockito.when(userRoleRepository.findById(1L))
-                .thenReturn(Optional.of(dummyRole));
-
-        // Create a dummy user with username "user@example.com" (matching @WithMockUser)
-        User dummyUser = new User();
-        dummyUser.setEmail("user@example.com");
-        dummyUser.setFirstName("Dummy");
-        dummyUser.setLastName("User");
-        // Set the dummy user's password to the encoded version of "password"
-        dummyUser.setPassword(passwordEncoder.encode("password"));
-        dummyUser.setRole(dummyRole);
-
-        // When any email is looked up (or specifically "user@example.com"), return our dummy user
-        Mockito.when(userRepository.findByEmail(Mockito.anyString()))
-                .thenReturn(Optional.of(dummyUser));
+    private Priority createDummyPriority(Long id, String level) {
+        return createDummyPriority(id, level, "active");
     }
 
+    private Priority createDummyPriority(Long id, String level, String status) {
+        Priority priority = new Priority(level, status);
+        ReflectionTestUtils.setField(priority, "id", id);
+        return priority;
+    }
 
+    @WithMockUser(username = "user@example.com", roles = {"ADMIN"})
     @Test
     public void testGetAllPriorities() throws Exception {
         // Arrange: create a couple of sample priority objects.
-        Priority priority1 = new Priority("low", "active");
-        ReflectionTestUtils.setField(priority1, "id", 1L);
-        Priority priority2 = new Priority("high", "active");
-        ReflectionTestUtils.setField(priority2, "id", 2L);
+        Priority priority1 = createDummyPriority(1L,"low", "active");
+        Priority priority2 = createDummyPriority(2L,"high", "active");
         Mockito.when(priorityRepository.findAll())
                 .thenReturn(Arrays.asList(priority1, priority2));
 
@@ -85,15 +74,75 @@ public class PriorityControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].level").value("low"))
+                .andExpect(jsonPath("$[0].status").value("active"))
                 .andExpect(jsonPath("$[1].id").value(2))
-                .andExpect(jsonPath("$[1].level").value("high"));
+                .andExpect(jsonPath("$[1].level").value("high"))
+                .andExpect(jsonPath("$[1].status").value("active"));
+    }
+
+    @WithMockUser(username = "user@example.com", roles = {"GENERAL"})
+    @Test
+    public void testGetAllPriorities_Unauthorized() throws Exception {
+        // Arrange: create a couple of sample priority objects.
+        Priority priority1 = createDummyPriority(1L,"low", "active");
+        Priority priority2 = createDummyPriority(2L,"high", "active");
+        Mockito.when(priorityRepository.findAll())
+                .thenReturn(Arrays.asList(priority1, priority2));
+
+        // Act & Assert: perform GET and verify the JSON response.
+        mockMvc.perform(get("/api/priorities"))
+                .andExpect(status().isForbidden());
+    }
+
+    @WithAnonymousUser
+    @Test
+    public void testGetAllPriorities_Unauthenticated() throws Exception {
+        // Arrange: create a couple of sample priority objects.
+        Priority priority1 = createDummyPriority(1L,"low", "active");
+        Priority priority2 = createDummyPriority(2L,"high", "active");
+        Mockito.when(priorityRepository.findAll())
+                .thenReturn(Arrays.asList(priority1, priority2));
+
+        // Act & Assert: perform GET and verify the JSON response.
+        mockMvc.perform(get("/api/priorities"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @WithMockUser(username = "user@example.com", roles = {"GENERAL"})
+    @Test
+    public void testGetActivePriorities() throws Exception {
+        // Arrange: create a couple of sample Priority objects.
+        Priority priority1 = createDummyPriority(1L,"low", "active");
+        Priority priority2 = createDummyPriority(2L,"high", "disabled");
+        Mockito.when(priorityRepository.findAllActive())
+                .thenReturn(Arrays.asList(priority1));
+
+        // Act & Assert: perform GET and verify the JSON response.
+        mockMvc.perform(get("/api/priorities/active"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].level").value("low"))
+                .andExpect(jsonPath("$[0].status").value("active"));
     }
 
     @Test
-    public void testGetStatusById_Found() throws Exception {
+    public void testGetActivePriorities_Unauthenticated() throws Exception {
+        // Arrange: create a couple of sample Priority objects.
+        Priority priority1 = createDummyPriority(1L,"low", "active");
+        Priority priority2 = createDummyPriority(2L,"high", "disabled");
+        Mockito.when(priorityRepository.findAllActive())
+                .thenReturn(Arrays.asList(priority1));
+
+        // Act & Assert: perform GET and verify the JSON response.
+        mockMvc.perform(get("/api/priorities/active"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @WithMockUser(username = "user@example.com", roles = {"GENERAL"})
+    @Test
+    public void testGetPriorityById_Found() throws Exception {
         // Arrange: Create a sample priority with ID 1.
-        Priority priority = new Priority("low", "active");
-        ReflectionTestUtils.setField(priority, "id", 1L);
+        Priority priority = createDummyPriority(1L,"low", "active");
         Mockito.when(priorityRepository.findById(1L))
                 .thenReturn(Optional.of(priority));
 
@@ -104,6 +153,7 @@ public class PriorityControllerTest {
                 .andExpect(jsonPath("$.level").value("low"));
     }
 
+    @WithMockUser(username = "user@example.com", roles = {"GENERAL"})
     @Test
     public void testGetPriorityById_NotFound() throws Exception {
         // Arrange: Return an empty Optional for an unknown id.
@@ -115,16 +165,45 @@ public class PriorityControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @WithAnonymousUser
+    @Test
+    public void testGetPriorityById_Found_Unauthenticated() throws Exception {
+        // Arrange: Create a sample priority with ID 1.
+        Priority priority = createDummyPriority(1L,"low", "active");
+        Mockito.when(priorityRepository.findById(1L))
+                .thenReturn(Optional.of(priority));
+
+        // Act & Assert: Perform GET by id and verify the JSON response.
+        mockMvc.perform(get("/api/priorities/1"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testGetPriorityById_NotFound_Unauthenticated() throws Exception {
+        // Arrange: Return an empty Optional for an unknown id.
+        Mockito.when(priorityRepository.findById(99L))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert: The endpoint should return a 404 Not Found.
+        mockMvc.perform(get("/api/priorities/99"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @WithMockUser(username = "user@example.com", roles = {"ADMIN"})
     @Test
     public void testCreatePriority() throws Exception {
         // Arrange: Create a priority that the repository will return when saving.
-        Priority priority = new Priority("low", "active");
-        ReflectionTestUtils.setField(priority, "id", 1L);
+        Priority priority = createDummyPriority(1L,"low", "active");
         Mockito.when(priorityRepository.save(Mockito.any(Priority.class)))
                 .thenReturn(priority);
 
         // Prepare a JSON payload for the new priority.
-        String priorityJson = "{\"level\":\"low\",\"status\":\"active\"}";
+        String priorityJson = """
+        {
+        "level":"low",
+        "status":"active"
+        }
+        """;
 
         // Act & Assert: Perform POST and expect a 201 Created with the JSON response.
         mockMvc.perform(post("/api/priorities")
@@ -133,18 +212,65 @@ public class PriorityControllerTest {
                         .content(priorityJson))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.level").value("low"));
-
+                .andExpect(jsonPath("$.level").value("low"))
+                .andExpect(jsonPath("$.status").value("active"));
     }
 
+    @WithMockUser(username = "user@example.com", roles = {"GENERAL"})
+    @Test
+    public void testCreatePriority_Unauthorized() throws Exception {
+        // Arrange: Create a priority that the repository will return when saving.
+        Priority priority = createDummyPriority(1L,"low", "active");
+        Mockito.when(priorityRepository.save(Mockito.any(Priority.class)))
+                .thenReturn(priority);
+
+        // Prepare a JSON payload for the new priority.
+        String priorityJson = """
+        {
+        "level":"low",
+        "status":"active"
+        }
+        """;
+
+        // Act & Assert: Perform POST and expect a 201 Created with the JSON response.
+        mockMvc.perform(post("/api/priorities")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(priorityJson))
+                .andExpect(status().isForbidden());
+    }
+
+    @WithAnonymousUser
+    @Test
+    public void testCreatePriority_Unauthenticated() throws Exception {
+        // Arrange: Create a priority that the repository will return when saving.
+        Priority priority = createDummyPriority(1L,"low", "active");
+        Mockito.when(priorityRepository.save(Mockito.any(Priority.class)))
+                .thenReturn(priority);
+
+        // Prepare a JSON payload for the new priority.
+        String priorityJson = """
+        {
+        "level":"low",
+        "status":"active"
+        }
+        """;
+
+        // Act & Assert: Perform POST and expect a 201 Created with the JSON response.
+        mockMvc.perform(post("/api/priorities")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(priorityJson))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @WithMockUser(username = "user@example.com", roles = {"ADMIN"})
     @Test
     public void testUpdatePriority_Found() throws Exception {
         // Arrange: Prepare an existing priority.
-        Priority existingPriority = new Priority("low", "active");
-        ReflectionTestUtils.setField(existingPriority, "id", 1L);
+        Priority existingPriority = createDummyPriority(1L,"low", "active");
         // Prepare the priority that will be saved after update.
-        Priority updatedPriority = new Priority("medium", "disabled");
-        ReflectionTestUtils.setField(updatedPriority, "id", 1L);
+        Priority updatedPriority = createDummyPriority(1L,"medium", "disabled");
 
         Mockito.when(priorityRepository.findById(1L))
                 .thenReturn(Optional.of(existingPriority));
@@ -152,7 +278,11 @@ public class PriorityControllerTest {
                 .thenReturn(updatedPriority);
 
         // Prepare the JSON payload to update the priority.
-        String updateJson = "{\"level\":\"medium\",\"status\":\"disabled\"}";
+        String updateJson = """
+        {
+        "level":"medium","status":"disabled"
+        }
+        """;
 
         // Act & Assert: Perform PUT and expect a 200 OK with updated JSON.
         mockMvc.perform(put("/api/priorities/1")
@@ -163,16 +293,20 @@ public class PriorityControllerTest {
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.level").value("medium"))
                 .andExpect(jsonPath("$.status").value("disabled"));
-
     }
 
+    @WithMockUser(username = "user@example.com", roles = {"ADMIN"})
     @Test
     public void testUpdatePriority_NotFound() throws Exception {
         // Arrange: Return an empty Optional for a non-existent priority.
         Mockito.when(priorityRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
-        String updateJson = "{\"level\":\"medium\",\"status\":\"disabled\"}";
+        String updateJson = """
+        {
+        "level":"medium"
+        ,"status":"disabled"}
+        """;
 
         // Act & Assert: Perform PUT and expect a 404 Not Found.
         mockMvc.perform(put("/api/priorities/1")
@@ -182,10 +316,107 @@ public class PriorityControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @WithMockUser(username = "user@example.com", roles = {"GENERAL"})
+    @Test
+    public void testUpdatePriority_Found_Unauthorized() throws Exception {
+        // Arrange: Prepare an existing priority.
+        Priority existingPriority = createDummyPriority(1L,"low", "active");
+        // Prepare the priority that will be saved after update.
+        Priority updatedPriority = createDummyPriority(1L,"medium", "disabled");
+
+        Mockito.when(priorityRepository.findById(1L))
+                .thenReturn(Optional.of(existingPriority));
+        Mockito.when(priorityRepository.save(Mockito.any(Priority.class)))
+                .thenReturn(updatedPriority);
+
+        String updateJson = """
+        {
+        "level":"medium"
+        ,"status":"disabled"}
+        """;
+
+        // Act & Assert: Perform PUT and expect a 200 OK with updated JSON.
+        mockMvc.perform(put("/api/priorities/1")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updateJson))
+                .andExpect(status().isForbidden());
+    }
+
+    @WithMockUser(username = "user@example.com", roles = {"GENERAL"})
+    @Test
+    public void testUpdatePriority_NotFound_Unauthorized() throws Exception {
+        // Arrange: Return an empty Optional for a non-existent priority.
+        Mockito.when(priorityRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        String updateJson = """
+        {
+        "level":"medium"
+        ,"status":"disabled"}
+        """;
+
+        // Act & Assert: Perform PUT and expect a 404 Not Found.
+        mockMvc.perform(put("/api/priorities/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updateJson)
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    @WithAnonymousUser
+    @Test
+    public void testUpdatePriority_Found_Unauthenticated() throws Exception {
+        // Arrange: Prepare an existing priority.
+        Priority existingPriority = createDummyPriority(1L,"low", "active");
+        // Prepare the priority that will be saved after update.
+        Priority updatedPriority = createDummyPriority(1L,"medium", "disabled");
+
+        Mockito.when(priorityRepository.findById(1L))
+                .thenReturn(Optional.of(existingPriority));
+        Mockito.when(priorityRepository.save(Mockito.any(Priority.class)))
+                .thenReturn(updatedPriority);
+
+        String updateJson = """
+        {
+        "level":"medium"
+        ,"status":"disabled"}
+        """;
+
+        // Act & Assert: Perform PUT and expect a 200 OK with updated JSON.
+        mockMvc.perform(put("/api/priorities/1")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updateJson))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @WithAnonymousUser
+    @Test
+    public void testUpdatePriority_NotFound_Unauthenticated() throws Exception {
+        // Arrange: Return an empty Optional for a non-existent priority.
+        Mockito.when(priorityRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        String updateJson = """
+        {
+        "level":"medium"
+        ,"status":"disabled"}
+        """;
+
+        // Act & Assert: Perform PUT and expect a 404 Not Found.
+        mockMvc.perform(put("/api/priorities/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updateJson)
+                        .with(csrf()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @WithMockUser(username = "user@example.com", roles = {"ADMIN"})
     @Test
     public void testDeletePriority_Found() throws Exception {
         // Arrange: Create a sample priority.
-        Priority priority = new Priority("low", "active");
+        Priority priority = createDummyPriority(1L,"low", "active");
         ReflectionTestUtils.setField(priority, "id", 1L);
         Mockito.when(priorityRepository.findById(1L))
                 .thenReturn(Optional.of(priority));
@@ -194,9 +425,9 @@ public class PriorityControllerTest {
         mockMvc.perform(delete("/api/priorities/1")
                         .with(csrf()))
                 .andExpect(status().isNoContent());
-
     }
 
+    @WithMockUser(username = "user@example.com", roles = {"ADMIN"})
     @Test
     public void testDeletePriority_NotFound() throws Exception {
         // Arrange: For an unknown id, return an empty Optional.
@@ -207,5 +438,61 @@ public class PriorityControllerTest {
         mockMvc.perform(delete("/api/priorities/1")
                         .with(csrf()))
                 .andExpect(status().isNotFound());
+    }
+
+    @WithMockUser(username = "user@example.com", roles = {"GENERAL"})
+    @Test
+    public void testDeletePriority_Found_Unauthorized() throws Exception {
+        // Arrange: Create a sample priority.
+        Priority priority = createDummyPriority(1L,"low", "active");
+        ReflectionTestUtils.setField(priority, "id", 1L);
+        Mockito.when(priorityRepository.findById(1L))
+                .thenReturn(Optional.of(priority));
+
+        // Act & Assert: Perform DELETE and expect a 204 No Content.
+        mockMvc.perform(delete("/api/priorities/1")
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    @WithMockUser(username = "user@example.com", roles = {"GENERAL"})
+    @Test
+    public void testDeletePriority_NotFound_Unauthorized() throws Exception {
+        // Arrange: For an unknown id, return an empty Optional.
+        Mockito.when(priorityRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert: Perform DELETE and expect a 404 Not Found.
+        mockMvc.perform(delete("/api/priorities/1")
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    @WithAnonymousUser
+    @Test
+    public void testDeletePriority_Found_Unauthenticated() throws Exception {
+        // Arrange: Create a sample priority.
+        Priority priority = createDummyPriority(1L,"low", "active");
+        ReflectionTestUtils.setField(priority, "id", 1L);
+        Mockito.when(priorityRepository.findById(1L))
+                .thenReturn(Optional.of(priority));
+
+        // Act & Assert: Perform DELETE and expect a 204 No Content.
+        mockMvc.perform(delete("/api/priorities/1")
+                        .with(csrf()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @WithAnonymousUser
+    @Test
+    public void testDeletePriority_NotFound_Unauthenticated() throws Exception {
+        // Arrange: For an unknown id, return an empty Optional.
+        Mockito.when(priorityRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert: Perform DELETE and expect a 404 Not Found.
+        mockMvc.perform(delete("/api/priorities/1")
+                        .with(csrf()))
+                .andExpect(status().isUnauthorized());
     }
 }

@@ -21,6 +21,10 @@ public class Priority {
 
     public Priority() {}
 
+    public Priority(String level) {
+        setLevel(level);
+    }
+
     public Priority(String level, String status) {
         setLevel(level);
         setStatus(status);
@@ -43,6 +47,6 @@ public class Priority {
     }
 
     public void setStatus(String status) {
-        this.status = status;
+        this.status = status.toLowerCase();
     }
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "users")
@@ -23,9 +24,13 @@ public class User {
     @Size(max = 255, message = "Last Name must be at most 25 characters")
     private String lastName;
     private String password;
+    @NotNull(message = "Role cannot be null")
     @ManyToOne
     @JoinColumn(name = "role_id", nullable = false)
     private UserRole role;
+    @NotBlank(message = "User status cannot be blank")
+    @Size(max = 25, message = "User status must be at most 25 characters")
+    private String status;
 
     public User() {}
 
@@ -35,6 +40,16 @@ public class User {
         setLastName(lastName);
         setPassword(password);
         setRole(role);
+        setStatus("active");
+    }
+
+    public User(String email, String firstName, String lastName, String password, UserRole role, String status) {
+        setEmail(email);
+        setFirstName(firstName);
+        setLastName(lastName);
+        setPassword(password);
+        setRole(role);
+        setStatus(status);
     }
 
     public Long getId() {
@@ -61,6 +76,10 @@ public class User {
         return role;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
     public void setEmail(String email) {
         this.email = email;
     }
@@ -79,5 +98,9 @@ public class User {
 
     public void setRole(UserRole role) {
         this.role = role;
+    }
+
+    public void setStatus(String status) {
+        this.status = status.toLowerCase();
     }
 }

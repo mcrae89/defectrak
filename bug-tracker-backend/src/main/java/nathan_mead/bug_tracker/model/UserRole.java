@@ -14,12 +14,20 @@ public class UserRole {
     @NotBlank(message = "Role cannot be blank")
     @Size(max = 25, message = "Role must be at most 25 characters")
     private String role;
+    @NotBlank(message = "Role status cannot be blank")
+    @Size(max = 25, message = "Role status must be at most 25 characters")
+    private String status;
 
     public UserRole() {}
 
     public UserRole(String role) {
         setRole(role);
     }
+
+    public UserRole(String role, String status) {
+        setRole(role);
+        setStatus(status);
+            }
 
     public Long getId() {
         return id;
@@ -29,7 +37,15 @@ public class UserRole {
         return role;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public void setStatus(String status) {
+        this.status = status.toLowerCase();
     }
 }

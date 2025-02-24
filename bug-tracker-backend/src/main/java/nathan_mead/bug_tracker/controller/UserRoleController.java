@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,9 +25,15 @@ public class UserRoleController {
     private UserRoleRepository userRoleRepository;
 
     // GET endpoint to list all user roles
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public List<UserRole> getAllUserRoles() {
         return userRoleRepository.findAll();
+    }
+
+    @GetMapping("/active")
+    public List<UserRole> getActiveUserRoles() {
+        return userRoleRepository.findAllActive();
     }
 
     // GET endpoint to return a specific user role by ID
@@ -38,6 +45,7 @@ public class UserRoleController {
     }
 
     // POST endpoint to create a new user role
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<UserRole> createUserRole(@Valid @RequestBody UserRole userRole) {
         UserRole created = userRoleRepository.save(userRole);
@@ -45,6 +53,7 @@ public class UserRoleController {
     }
 
     // PUT endpoint to update an existing user role
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<UserRole> updateUserRole(@PathVariable Long id, @Valid @RequestBody UserRole userRoleDetails) {
         Optional<UserRole> existingUserRoleOpt = userRoleRepository.findById(id);
@@ -54,6 +63,7 @@ public class UserRoleController {
         UserRole existingUserRole = existingUserRoleOpt.get();
 
         existingUserRole.setRole(userRoleDetails.getRole());
+        existingUserRole.setStatus(userRoleDetails.getStatus());
         UserRole updated = userRoleRepository.save(existingUserRole);
 
         return ResponseEntity.ok(updated);
@@ -61,6 +71,7 @@ public class UserRoleController {
 
 
     // DELETE endpoint to delete an existing user role
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUserRole(@PathVariable Long id) {
         Optional<UserRole> existingUserRoleOpt = userRoleRepository.findById(id);

@@ -1,15 +1,15 @@
---CREATE BUG TABLE
 DROP TABLE IF EXISTS priorities;
 CREATE TABLE priorities (
     id SERIAL PRIMARY KEY,
     level VARCHAR(25) NOT NULL,
-    status VARCHAR(25) NOT NULL
+    status VARCHAR(25) NOT NULL DEFAULT 'active'
 );
 
 DROP TABLE IF EXISTS user_roles;
 CREATE TABLE user_roles (
     id SERIAL PRIMARY KEY,
-    role VARCHAR(25) NOT NULL
+    role VARCHAR(25) NOT NULL,
+    status VARCHAR(25) NOT NULL DEFAULT 'active'
 );
 
 DROP TABLE IF EXISTS users;
@@ -20,13 +20,15 @@ CREATE TABLE users (
     last_name VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     role_id INTEGER NOT NULL,
+    status VARCHAR(25) NOT NULL DEFAULT 'active',
     CONSTRAINT fk_role FOREIGN KEY (role_id) REFERENCES user_roles(id)
 );
 
 DROP TABLE IF EXISTS statuses;
 CREATE TABLE statuses (
     id SERIAL PRIMARY KEY,
-    status_label VARCHAR(25) NOT NULL
+    status_label VARCHAR(25) NOT NULL,
+    status VARCHAR(25) NOT NULL DEFAULT 'active'
 );
 
 DROP TABLE IF EXISTS bugs;

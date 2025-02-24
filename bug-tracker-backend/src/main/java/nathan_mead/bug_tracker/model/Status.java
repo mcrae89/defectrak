@@ -15,11 +15,19 @@ public class Status {
     @NotBlank(message = "Status label cannot be blank")
     @Size(max = 25, message = "Status label must be at most 25 characters")
     private String statusLabel;
+    @NotBlank(message = "Status cannot be blank")
+    @Size(max = 25, message = "Status must be at most 25 characters")
+    private String status;
 
     public Status() {}
 
     public Status(String statusLabel) {
         setStatusLabel(statusLabel);
+    }
+
+    public Status(String statusLabel, String status) {
+        setStatusLabel(statusLabel);
+        setStatus(status);
     }
 
     public Long getId() {
@@ -30,7 +38,15 @@ public class Status {
         return statusLabel;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
     public void setStatusLabel(String statusLabel) {
         this.statusLabel = statusLabel;
+    }
+
+    public void setStatus(String status) {
+        this.status = status.toLowerCase();
     }
 }

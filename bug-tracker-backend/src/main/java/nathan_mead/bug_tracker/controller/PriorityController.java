@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,9 +25,15 @@ public class PriorityController {
     private PriorityRepository priorityRepository;
 
     // GET endpoint to list all priorities
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public List<Priority> getAllPriorities() {
         return priorityRepository.findAll();
+    }
+
+    @GetMapping("/active")
+    public List<Priority> getActivePriorities() {
+        return priorityRepository.findAllActive();
     }
 
     // GET endpoint to return a specific priority by ID
@@ -38,6 +45,7 @@ public class PriorityController {
     }
 
     // POST endpoint to create a new Priority
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<Priority> createPriority(@Valid @RequestBody Priority priority) {
         Priority created = priorityRepository.save(priority);
@@ -45,6 +53,7 @@ public class PriorityController {
     }
 
     // PUT endpoint to update an existing Priority
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Priority> updatePriority(@PathVariable Long id, @Valid @RequestBody Priority priorityDetails) {
         Optional<Priority> existingPriorityOpt = priorityRepository.findById(id);
@@ -59,6 +68,7 @@ public class PriorityController {
     }
 
     // DELETE endpoint to delete an existing priority
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePriority(@PathVariable Long id) {
         Optional<Priority> existingPriorityOpt = priorityRepository.findById(id);
