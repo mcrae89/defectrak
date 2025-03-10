@@ -15,11 +15,10 @@ services:
   frontend:
     build:
       context: ./bug-tracker-frontend
-      dockerfile: Dockerfile.dev
     container_name: bug-tracker-frontend
     restart: always
     ports:
-      - "3000:3000"
+      - "3000:80"
     depends_on:
       - backend
     volumes:

@@ -1,12 +1,15 @@
 import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import WelcomePage from './WelcomePage';
+import LoginPage from './LoginPage';
 
 function App() {
-    return (
-        <div>
-            <h1>Bug Tracker</h1>
-            <p>Welcome to the Bug Tracker application!</p>
-        </div>
-    );
+  return (
+    <Routes>
+      <Route path="/" element={<WelcomePage />} />
+      <Route path="/login" element={<LoginPage />} />
+    </Routes>
+  );
 }
 
 export default App;
