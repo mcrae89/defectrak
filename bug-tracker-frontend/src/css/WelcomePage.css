@@ -1,0 +1,74 @@
+/* Overall container style */
+.welcome-page {
+    font-family: 'Arial', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Header styling */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: #282c34;
+    color: #ffffff;
+  }
+  
+  /* Logo styling */
+  .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  /* Auth buttons container */
+  .auth-buttons button {
+    margin-left: 1rem;
+    background-color: transparent;
+    border: 1px solid #ffffff;
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .auth-buttons button:hover {
+    background-color: #ffffff;
+    color: #282c34;
+  }
+  
+  /* Main content area */
+  .main-content {
+    flex: 1;
+    text-align: center;
+    padding: 3rem 2rem;
+    background: #f7f7f7;
+  }
+  
+  .main-content h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .main-content p {
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  
+  /* Get Started button styling */
+  .get-started {
+    background-color: #61dafb;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .get-started:hover {
+    background-color: #52b7e0;
+  }
+  

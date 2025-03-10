@@ -13,13 +13,20 @@ services:
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
   frontend:
-    build: ./bug-tracker-frontend
+    build:
+      context: ./bug-tracker-frontend
+      dockerfile: Dockerfile.dev
     container_name: bug-tracker-frontend
     restart: always
     ports:
-      - "3000:80"
+      - "3000:3000"
     depends_on:
       - backend
+    volumes:
+      - ./bug-tracker-frontend:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
 
   db:
     image: postgres:15

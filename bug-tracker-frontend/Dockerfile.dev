@@ -1,0 +1,19 @@
+FROM node:20
+
+WORKDIR /app
+
+# Copy package files and install dependencies
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Copy the rest of your application code
+COPY . .
+
+# Enable polling for file changes (important for Docker environments)
+ENV CHOKIDAR_USEPOLLING=true
+
+# Expose the default development server port
+EXPOSE 3000
+
+# Run the React development server
+CMD ["npm", "start"]
