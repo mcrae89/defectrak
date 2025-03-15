@@ -2,6 +2,7 @@ package nathan_mead.bug_tracker.config;
 
 import nathan_mead.bug_tracker.repository.UserRepository;
 import nathan_mead.bug_tracker.security.CustomUserDetailsService;
+import nathan_mead.bug_tracker.security.JsonUsernamePasswordAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -13,11 +14,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SecurityConfig {
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private UserRepository userRepository;
@@ -41,7 +43,17 @@ public class SecurityConfig {
     }
 
     @Bean
+    public AuthenticationManager authenticationManager (HttpSecurity http) throws Exception {
+        return http.getSharedObject(AuthenticationManager.class);
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        JsonUsernamePasswordAuthenticationFilter jsonFilter = new JsonUsernamePasswordAuthenticationFilter();
+        jsonFilter.setAuthenticationManager(authenticationManager(http));
+        jsonFilter.setFilterProcessesUrl("/api/login");
+
         http
                 // Disable CSRF for APIs (if acceptable for your scenario)
                 .csrf(csrf -> csrf.disable())
