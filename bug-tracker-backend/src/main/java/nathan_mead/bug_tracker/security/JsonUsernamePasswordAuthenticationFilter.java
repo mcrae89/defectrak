@@ -1,4 +1,4 @@
-package com.example.demo.security;
+package nathan_mead.bug_tracker.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -7,8 +7,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
 
@@ -20,7 +20,7 @@ public class JsonUsernamePasswordAuthenticationFilter extends UsernamePasswordAu
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException {
 
-        if ("application/json".equals(request.getContentType())) {
+        if (request.getContentType() != null && request.getContentType().startsWith("application/json")) {
             try {
                 Map<String, String> authRequestMap = objectMapper.readValue(request.getInputStream(), Map.class);
                 // Adjust the key names if needed (here we expect email and password)

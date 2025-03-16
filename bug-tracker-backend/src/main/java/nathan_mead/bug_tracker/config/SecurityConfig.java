@@ -15,11 +15,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
 
     @Autowired
     private UserRepository userRepository;
@@ -43,32 +45,29 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager (HttpSecurity http) throws Exception {
-        return http.getSharedObject(AuthenticationManager.class);
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationConfiguration config) throws Exception {
 
         JsonUsernamePasswordAuthenticationFilter jsonFilter = new JsonUsernamePasswordAuthenticationFilter();
-        jsonFilter.setAuthenticationManager(authenticationManager(http));
+        jsonFilter.setAuthenticationManager(config.getAuthenticationManager());
         jsonFilter.setFilterProcessesUrl("/api/login");
 
         http
-                // Disable CSRF for APIs (if acceptable for your scenario)
                 .csrf(csrf -> csrf.disable())
-                // Configure URL authorization rules
+                .authenticationProvider(authenticationProvider())
+                .addFilterAt(jsonFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
-                        // Permit access to registration and any public endpoints
+                        .requestMatchers("/api/login").permitAll()
                         .requestMatchers("/api/users/register").permitAll()
-                        // You might also want to allow swagger endpoints if needed:
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        // All other endpoints require authentication
                         .anyRequest().authenticated()
-                )
-                // Use HTTP Basic authentication for simplicity
-                .httpBasic(Customizer.withDefaults());
+                );
 
         return http.build();
     }
+
 }

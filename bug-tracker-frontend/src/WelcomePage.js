@@ -23,6 +23,11 @@ const WelcomePage = () => {
   const[loginEmail, setLoginEmail] = useState('');
   const[loginPassword, setLoginPassword] = useState('');
   const[loginError, setLoginError] = useState(null);
+  const[registerEmail, setRegisterEmail] = useState('');
+  const[registerPassword, setRegisterPassword] = useState('');
+  const[registerFirstName, setRegisterFirstName] = useState('');
+  const[registerLastName, setRegisterLastName] = useState('');
+  const[registerError, setRegisterError] = useState(null);
 
   const handleLoginClick = () => {
     setShowLoginModal(true);
@@ -53,7 +58,7 @@ const WelcomePage = () => {
     setLoginError(null);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/login`, {
+      const response = await fetch('/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -77,6 +82,39 @@ const WelcomePage = () => {
     }
   };
 
+  const handleRegisterSubmit = async (e) => {
+    e.preventDefault();
+    setLoginError(null);
+
+    try {
+      const response = await fetch('/api/users/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: loginEmail,
+          firstName: registerFirstName,
+          lastName: registerLastName,
+          password: loginPassword,
+          userRoleId: 2,
+          status: 'active'
+
+        })
+      });
+  
+      if (response.ok) {
+        console.log('Registration successful');
+        handleClose();
+      } else {
+        const errorData = await response.json();
+        setLoginError(errorData.message || 'Invalid credentials');
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+      setLoginError('An error occurred. Please try again.');
+    }
+  };
 
   return (
     <div className="welcome-page" style={{ position: 'relative' }}>
@@ -139,7 +177,7 @@ const WelcomePage = () => {
       {showRegisterModal && (
         <Modal onClose={handleClose}>
           <h2 className="text-center mb-4">Register</h2>
-          <form>
+          <form onSubit={handleRegisterSubmit}>
             <div className="mb-3">
               <label htmlFor="register-email" className="form-label">
                 Email address
@@ -149,6 +187,9 @@ const WelcomePage = () => {
                 className="form-control"
                 id="register-email"
                 placeholder="Enter email"
+                value={registerEmail}
+                onChange={(e) => setRegisterEmail(e.target.value)}
+                required
               />
             </div>
             <div className="mb-3">
@@ -160,8 +201,40 @@ const WelcomePage = () => {
                 className="form-control"
                 id="register-password"
                 placeholder="Password"
+                value={registerPassword}
+                onChange={(e) => setRegisterPassword(e.target.value)}
+                required
               />
             </div>
+            <div className="mb-3">
+              <label htmlFor="register-first-name" className="form-label">
+                Password
+              </label>
+              <input
+                type="string"
+                className="form-control"
+                id="register-first-name"
+                placeholder="First Name"
+                value={registerFirstName}
+                onChange={(e) => setRegisterFirstName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="register-last-name" className="form-label">
+                Password
+              </label>
+              <input
+                type="string"
+                className="form-control"
+                id="register-last-name"
+                placeholder="Last Name"
+                value={registerLastName}
+                onChange={(e) => setRegisterLastName(e.target.value)}
+                required
+              />
+            </div>
+            {registerError && <div className="text-danger mb-3">{registerError}</div>}
             <button type="submit" className="btn btn-primary w-100">
               Register
             </button>
