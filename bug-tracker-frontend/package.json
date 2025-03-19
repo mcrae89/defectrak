@@ -13,6 +13,7 @@
         "@svgr/plugin-svgo": "6.0.0",
         "@svgr/webpack": "6.0.0",
         "bootstrap": "^5.3.3",
+        "bootstrap-icons": "^1.11.3",
         "css-select": "5.1.0",
         "css-what": "6.1.0",
         "postcss": "8.5.1",

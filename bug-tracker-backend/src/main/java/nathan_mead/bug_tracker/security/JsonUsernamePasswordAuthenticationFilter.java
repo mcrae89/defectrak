@@ -19,7 +19,6 @@ public class JsonUsernamePasswordAuthenticationFilter extends UsernamePasswordAu
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException {
-
         if (request.getContentType() != null && request.getContentType().startsWith("application/json")) {
             try {
                 Map<String, String> authRequestMap = objectMapper.readValue(request.getInputStream(), Map.class);
