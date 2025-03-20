@@ -64,26 +64,36 @@ public class SecurityConfig {
         jsonFilter.setAuthenticationManager(config.getAuthenticationManager());
         jsonFilter.setFilterProcessesUrl("/api/login");
         jsonFilter.setAuthenticationSuccessHandler((request, response, authentication) -> {
-            // Ensure the SecurityContext is stored in the session
             request.getSession().setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
-            // Redirect to the home page
-            response.sendRedirect("/");
+            response.setContentType("application/json");
+            response.getWriter().write("{\"message\": \"Login successful\"}");
         });
 
 
         http
-                .csrf(csrf -> csrf.disable())
-                .anonymous(Customizer.withDefaults())
-                .authenticationProvider(authenticationProvider())
-                .addFilterAt(jsonFilter, UsernamePasswordAuthenticationFilter.class)
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                )
-                .authorizeHttpRequests(auth -> auth
-                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                    .requestMatchers("/api/users/register", "/login", "/api/me", "/css/**", "/js/**").permitAll()
-                    .anyRequest().authenticated()
-                );
+            .csrf(csrf -> csrf.disable())
+            .anonymous(Customizer.withDefaults())
+            .authenticationProvider(authenticationProvider())
+            .addFilterAt(jsonFilter, UsernamePasswordAuthenticationFilter.class)
+            .sessionManagement(session -> session
+                    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+            )
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/api/users/register", "/login", "/api/me", "/css/**", "/js/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .logout(logout -> logout
+                    .logoutUrl("/api/logout")
+                    .logoutSuccessHandler((request, response, authentication) -> {
+                        // Invalidate session and delete cookies if necessary
+                        request.getSession().invalidate();
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"message\": \"Logout successful\"}");
+                    })
+                    .invalidateHttpSession(true)
+                    .deleteCookies("JSESSIONID")
+            );
 
         return http.build();
     }
