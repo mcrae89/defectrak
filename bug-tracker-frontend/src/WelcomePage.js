@@ -127,7 +127,7 @@ const WelcomePage = () => {
     <div className="welcome-page" style={{ position: 'relative' }}>
       {/* Main Page Content */}
       <div id="page-content">
-        <header className="header d-flex justify-content-between align-items-center p-3 bg-dark text-white">
+        <header className="header bg-dark text-white">
           <div className="logo">Bug Tracker</div>
           <button onClick={handleLoginClick} className="btn btn-light">
             Login

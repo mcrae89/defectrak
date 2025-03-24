@@ -1,25 +1,8 @@
 /* Overall container style */
 .welcome-page {
     font-family: 'Arial', sans-serif;
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
-  }
-  
-  /* Header styling */
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 2rem;
-    background-color: #282c34;
-    color: #ffffff;
-  }
-  
-  /* Logo styling */
-  .logo {
-    font-size: 1.5rem;
-    font-weight: bold;
   }
   
   /* Auth buttons container */

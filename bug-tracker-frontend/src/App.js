@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom';
 import WelcomePage from './WelcomePage';
 import DashboardPage from './DashboardPage';
 import AccountPage from './AccountPage';
+import AdminPage from './AdminPage';
 
 function App() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -38,8 +39,9 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/" element={authenticated ? <DashboardPage /> : <WelcomePage />} />
+      <Route path="/" element={authenticated ? <DashboardPage user={user} /> : <WelcomePage />} />
       <Route path="/account" element={authenticated ? (<AccountPage user={user} setUser={setUser} setAuthenticated={setAuthenticated} />) : (<Navigate to='/' />)} />
+      <Route path="/admin" element={authenticated ? <AdminPage /> : (<Navigate to='/' />)} />
     </Routes>
   );
 }

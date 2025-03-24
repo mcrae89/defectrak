@@ -1,0 +1,54 @@
+html, body {
+    margin: 0! important;
+    padding: 0;
+    height: 100%;
+  }
+  
+  body {
+    background-color: #f0f0f0;
+  }
+  
+  #root {
+    min-height: 100%;
+  }
+
+  /* Header styling */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: #282c34;
+    color: #ffffff;
+  }
+
+  /* Logo styling */
+  .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+
+  .options {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #fff;
+    color: #000;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 1000;
+    padding: 0.5rem;
+    min-width: 120px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .options > div {
+    padding: 0.5rem;
+    cursor: pointer;
+  }
+  
+  .custom-border {
+    border: 1px solid #ccc;
+  }
