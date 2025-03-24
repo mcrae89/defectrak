@@ -39,7 +39,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={authenticated ? <DashboardPage /> : <WelcomePage />} />
-      <Route path="/account" element={authenticated ? (<AccountPage user={user} setUser={setUser} />) : (<Navigate to='/' />)} />
+      <Route path="/account" element={authenticated ? (<AccountPage user={user} setUser={setUser} setAuthenticated={setAuthenticated} />) : (<Navigate to='/' />)} />
     </Routes>
   );
 }

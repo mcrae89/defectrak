@@ -60,6 +60,7 @@ const DashboardPage = () => {
                 position: 'absolute',
                 top: '100%',
                 right: 0,
+                backgroundColor: '#fff',
                 color: '#000',
                 border: '1px solid #ccc',
                 borderRadius: '4px',

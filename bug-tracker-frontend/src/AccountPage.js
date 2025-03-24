@@ -1,13 +1,24 @@
 import React, { useState } from 'react';
 import './css/AccountPage.css';
+import { useNavigate } from 'react-router-dom';
 
-const AccountPage = ({ user: initialUser, setUser }) => {
+const AccountPage = ({ user: initialUser, setUser, setAuthenticated }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     email: initialUser?.email || '',
     firstName: initialUser?.firstName || '',
     lastName: initialUser?.lastName || ''
   });
+  const [showOptions, setShowOptions] = useState(false);
+  const navigate = useNavigate();
+
+  const handleMouseEnter = () => {
+    setShowOptions(true);
+  };
+
+  const handleMouseLeave = () => {
+    setShowOptions(false);
+  };
 
   const handleEditClick = () => {
     setIsEditing(true);
@@ -45,7 +56,6 @@ const AccountPage = ({ user: initialUser, setUser }) => {
         console.log('Update successful');
         const updatedUser = await response.json();
         setUser(updatedUser);
-        //window.location.reload();
       } else {
         const errorData = await response.json();
         console.error('Error during updating:', errorData);
@@ -56,11 +66,70 @@ const AccountPage = ({ user: initialUser, setUser }) => {
     setIsEditing(false);
   };
 
+  const handleLogout = async (e) => {
+    e.preventDefault();
+  
+    try {
+      const response = await fetch('/api/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+  
+      if (response.ok) {
+        console.log('Logout successful');
+        setUser(null);
+        setAuthenticated(false);
+        navigate('/');
+      } else {
+        const errorData = await response.json();
+        console.log(errorData);
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
+
   return (
     <div className="account-page">
       <header className="header bg-dark text-white p-3 d-flex justify-content-between align-items-center">
         <h1>Account</h1>
-        <i className="bi bi-person-circle" style={{ fontSize: '2rem' }}></i>
+        <div
+          style={{ position: 'relative', display: 'inline-block' }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          <i
+            className="bi bi-person-circle"
+            style={{ fontSize: '2rem', cursor: 'pointer' }}
+          ></i>
+          {showOptions && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                backgroundColor: '#fff',
+                color: '#000',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                zIndex: 1000,
+                padding: '0.5rem',
+                minWidth: '120px'
+              }}
+            >
+              <div
+                style={{ padding: '0.5rem', cursor: 'pointer' }}
+                onClick={handleLogout}
+              >
+                Logout
+              </div>
+            </div>
+          )}
+        </div>
       </header>
 
       <main className="account-main-content">
