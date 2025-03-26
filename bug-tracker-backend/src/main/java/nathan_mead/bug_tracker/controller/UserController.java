@@ -17,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 
 import jakarta.validation.Valid;
 
@@ -115,6 +116,53 @@ public class UserController {
 
         user.setPassword(hashPassword(newPassword));
         User updatedUser = userRepository.save(user);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    // PUT endpoint to update an existing users status
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
+    public ResponseEntity<User> updateUserStatus(@PathVariable Long id, @RequestBody String status) {
+
+        Optional<User> userOpt = userRepository.findById(id);
+        if (!userOpt.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User user = userOpt.get();
+
+        user.setStatus(status);
+        User updatedUser = userRepository.save(user);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    // PUT endpoint to update an existing user's role
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}/role")
+    public ResponseEntity<?> updateUserRole(@PathVariable Long id, @RequestBody Map<String, Long> requestBody) {
+        // Retrieve the new role id from the request body
+        Long userRoleId = requestBody.get("userRoleId");
+        if (userRoleId == null) {
+            return ResponseEntity.badRequest().body("Missing userRoleId in request body.");
+        }
+        
+        // Find the user by id
+        Optional<User> userOpt = userRepository.findById(id);
+        if (!userOpt.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        // Find the role by the provided role id
+        Optional<UserRole> roleOpt = userRoleRepository.findById(userRoleId);
+        if (!roleOpt.isPresent()) {
+            return ResponseEntity.badRequest().body("Invalid userRoleId.");
+        }
+        
+        // Update the user's role and save
+        User user = userOpt.get();
+        user.setRole(roleOpt.get());
+        User updatedUser = userRepository.save(user);
+        
         return ResponseEntity.ok(updatedUser);
     }
 

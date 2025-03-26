@@ -91,7 +91,7 @@ const AdminPage = () => {
         {/* Single Dropdown for Tabs */}
         <div className="mb-3">
           <Dropdown>
-            <Dropdown.Toggle variant="primary">
+            <Dropdown.Toggle variant="secondary">
               {getTabLabel(activeTab)}
             </Dropdown.Toggle>
             <Dropdown.Menu>
