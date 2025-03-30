@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar, Container, Nav, Dropdown } from 'react-bootstrap';
 import HoverDropdown from './components/HoverDropdown';
+import BugList from './components/BugList';
 
 const DashboardPage = ({ user }) => {
   const navigate = useNavigate();
@@ -37,14 +38,14 @@ const DashboardPage = ({ user }) => {
         <Container>
           <Navbar.Brand>Dashboard</Navbar.Brand>
           <Nav className="ms-auto">
-            <HoverDropdown 
+            <HoverDropdown
               toggleContent={<i className="bi bi-person-circle" style={{ fontSize: '1.5rem' }}></i>}
             >
               <Dropdown.Item onClick={handleAccount}>Account</Dropdown.Item>
               <Dropdown.Item onClick={handleLogout}>Logout</Dropdown.Item>
             </HoverDropdown>
             {user.role.role === 'admin' && (
-              <HoverDropdown 
+              <HoverDropdown
                 toggleContent={<i className="bi bi-list" style={{ fontSize: '1.5rem' }}></i>}
               >
                 <Dropdown.Item onClick={() => navigate('/admin')}>Admin</Dropdown.Item>
@@ -56,7 +57,7 @@ const DashboardPage = ({ user }) => {
 
       {/* Main Content */}
       <Container className="mt-4">
-        <p>Welcome to your dashboard!</p>
+        <BugList />
       </Container>
     </>
   );

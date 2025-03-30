@@ -17,8 +17,8 @@ public class Bug {
     @Size(max = 255, message = "Title must be less than 255 characters")
     private String title;
 
-    @NotBlank(message = "Title is required")
-    @Size(max = 4000, message = "Title must be less than 255 characters")
+    @NotBlank(message = "Description is required")
+    @Size(max = 4000, message = "Description must be less than 4000 characters")
     private String description;
 
     // Associations to other entities
@@ -31,7 +31,7 @@ public class Bug {
     private Status status;
 
     @ManyToOne
-    @JoinColumn(name = "assignee_id")
+    @JoinColumn(name = "assignee_user_id")
     private User assignee;
 
     private LocalDateTime createdAt;
