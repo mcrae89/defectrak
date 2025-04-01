@@ -2,8 +2,6 @@ package nathan_mead.bug_tracker.controller;
 
 import nathan_mead.bug_tracker.model.UserRole;
 import nathan_mead.bug_tracker.repository.UserRoleRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +16,6 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/user-roles")
 public class UserRoleController {
-
-    private static final Logger logger = LoggerFactory.getLogger(UserRoleController.class);
 
     @Autowired
     private UserRoleRepository userRoleRepository;
@@ -47,20 +43,36 @@ public class UserRoleController {
     // POST endpoint to create a new user role
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<UserRole> createUserRole(@Valid @RequestBody UserRole userRole) {
+    public ResponseEntity<?> createUserRole(@Valid @RequestBody UserRole userRole) {
+        String role = userRole.getRole().toLowerCase();
+
+        if (userRoleRepository.findByRole(role).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("A user role with this name already exists.");
+        }
+
         UserRole created = userRoleRepository.save(userRole);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     // PUT endpoint to update an existing user role
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<UserRole> updateUserRole(@PathVariable Long id, @Valid @RequestBody UserRole userRoleDetails) {
+    public ResponseEntity<?> updateUserRole(@PathVariable Long id, @Valid @RequestBody UserRole userRoleDetails) {
         Optional<UserRole> existingUserRoleOpt = userRoleRepository.findById(id);
         if (!existingUserRoleOpt.isPresent()) {
             return ResponseEntity.notFound().build();
         }
+
         UserRole existingUserRole = existingUserRoleOpt.get();
+
+        String updatedRole = userRoleDetails.getRole().toLowerCase();
+
+        if (!existingUserRole.getRole().equals(updatedRole) && userRoleRepository.findByRole(updatedRole).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("A user role with this name already exists.");
+        }
 
         existingUserRole.setRole(userRoleDetails.getRole());
         existingUserRole.setStatus(userRoleDetails.getStatus());

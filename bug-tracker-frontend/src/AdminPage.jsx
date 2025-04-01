@@ -1,22 +1,17 @@
-import React, { useState, lazy, Suspense } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Container,
-  Navbar,
-  Nav,
-  Dropdown
-} from 'react-bootstrap';
+import { Container, Navbar, Nav, Dropdown } from 'react-bootstrap';
 import HoverDropdown from './components/HoverDropdown';
+import { TabComponent } from '@syncfusion/ej2-react-navigations';
 
-// Lazy-loaded tab components
-const UsersTab = lazy(() => import('./UsersTab'));
-const RolesTab = lazy(() => import('./RolesTab'));
-const PrioritiesTab = lazy(() => import('./PrioritiesTab'));
-const StatusesTab = lazy(() => import('./StatusesTab'));
+// Synchronously import all tab components
+import UsersTab from './UsersTab';
+import RolesTab from './RolesTab';
+import PrioritiesTab from './PrioritiesTab';
+import StatusesTab from './StatusesTab';
 
 const AdminPage = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('users');
 
   const handleAccount = () => {
     navigate('/account');
@@ -42,21 +37,13 @@ const AdminPage = () => {
     }
   };
 
-  // Helper to get a user-friendly label for the current tab
-  const getTabLabel = (tab) => {
-    switch (tab) {
-      case 'users':
-        return 'Users';
-      case 'roles':
-        return 'Roles';
-      case 'priorities':
-        return 'Priorities';
-      case 'statuses':
-        return 'Statuses';
-      default:
-        return 'Select Tab';
-    }
-  };
+  // Define tab items for the Syncfusion Tab component.
+  const tabItems = [
+    { header: { text: 'Users' }, content: () => <UsersTab /> },
+    { header: { text: 'Roles' }, content: () => <RolesTab /> },
+    { header: { text: 'Priorities' }, content: () => <PrioritiesTab /> },
+    { header: { text: 'Statuses' }, content: () => <StatusesTab /> }
+  ];
 
   return (
     <>
@@ -66,50 +53,23 @@ const AdminPage = () => {
           <Navbar.Brand>Admin</Navbar.Brand>
           <Nav className="ms-auto">
             <HoverDropdown
-              toggleContent={
-                <i className="bi bi-person-circle" style={{ fontSize: '1.5rem' }}></i>
-              }
+              toggleContent={<i className="bi bi-person-circle" style={{ fontSize: '1.5rem' }}></i>}
             >
               <Dropdown.Item onClick={handleAccount}>Account</Dropdown.Item>
               <Dropdown.Item onClick={handleLogout}>Logout</Dropdown.Item>
             </HoverDropdown>
             <HoverDropdown
-              toggleContent={
-                <i className="bi bi-list" style={{ fontSize: '1.5rem' }}></i>
-              }
+              toggleContent={<i className="bi bi-list" style={{ fontSize: '1.5rem' }}></i>}
             >
-              <Dropdown.Item onClick={() => navigate('/')}>
-                Dashboard
-              </Dropdown.Item>
+              <Dropdown.Item onClick={() => navigate('/')}>Dashboard</Dropdown.Item>
             </HoverDropdown>
           </Nav>
         </Container>
       </Navbar>
 
-      {/* Main Content */}
+      {/* Main Content using Syncfusion Tabs */}
       <Container className="mt-4">
-        {/* Single Dropdown for Tabs */}
-        <div className="mb-3">
-          <Dropdown>
-            <Dropdown.Toggle variant="secondary">
-              {getTabLabel(activeTab)}
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              <Dropdown.Item onClick={() => setActiveTab('users')}>Users</Dropdown.Item>
-              <Dropdown.Item onClick={() => setActiveTab('roles')}>Roles</Dropdown.Item>
-              <Dropdown.Item onClick={() => setActiveTab('priorities')}>Priorities</Dropdown.Item>
-              <Dropdown.Item onClick={() => setActiveTab('statuses')}>Statuses</Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
-        </div>
-
-        {/* Lazy-loaded Tab Content */}
-        <Suspense fallback={<div>Loading tab...</div>}>
-          {activeTab === 'users' && <UsersTab />}
-          {activeTab === 'roles' && <RolesTab />}
-          {activeTab === 'priorities' && <PrioritiesTab />}
-          {activeTab === 'statuses' && <StatusesTab />}
-        </Suspense>
+        <TabComponent items={tabItems} />
       </Container>
     </>
   );

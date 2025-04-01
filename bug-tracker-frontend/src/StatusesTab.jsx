@@ -1,11 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { Container, Table, Button, Form } from 'react-bootstrap';
+import React, { useState, useEffect, useRef } from 'react';
+import { Container } from 'react-bootstrap';
+import {
+  GridComponent,
+  ColumnsDirective,
+  ColumnDirective,
+  Edit,
+  Inject,
+  Toolbar,
+  Page,
+  Sort,
+  Filter
+} from '@syncfusion/ej2-react-grids';
 
 const StatusesTab = () => {
   const [statuses, setStatuses] = useState([]);
-  const [editingStatusId, setEditingStatusId] = useState(null);
-  const [editingStatusLabel, setEditingStatusLabel] = useState('');
-  const [editingStatus, setEditingStatus] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const gridRef = useRef(null);
 
   useEffect(() => {
     fetchStatuses();
@@ -25,93 +35,145 @@ const StatusesTab = () => {
     }
   };
 
-  const handleStartEditing = (status) => {
-    setEditingStatusId(status.id);
-    setEditingStatusLabel(status.statusLabel);
-    setEditingStatus(status.status);
+  // Inline editing & adding settings.
+  const editingSettings = {
+    allowEditing: true,
+    allowAdding: true,
+    allowDeleting: false, // Deletion is handled in the Actions column
+    mode: 'Normal',
+    newRowPosition: 'Top'
   };
 
-  const handleCancelEdit = () => {
-    setEditingStatusId(null);
-    setEditingStatusLabel('');
-    setEditingStatus('');
-  };
+  // When not editing, show Add and Edit. When editing/adding, show Update and Cancel.
+  const toolbarOptions = isEditing ? ['Update', 'Cancel'] : ['Add', 'Edit'];
+  const pageSettings = { pageSize: 10, pageSizes: ['10', '25', '50', 'All'] };
+  const sortSettings = { columns: [] };
+  const filterSettings = { type: 'Menu' };
 
-  // Save the updated status label
-  const handleSaveEdit = async (statusId) => {
-    try {
-      const response = await fetch(`/api/statuses/${statusId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          statusLabel: editingStatusLabel,
-          status: editingStatus
-        })
-      });
-
-      if (response.ok) {
-        console.log('Status updated successfully');
-        await fetchStatuses();
-        handleCancelEdit();
-      } else {
-        console.error('Error updating status');
-      }
-    } catch (error) {
-      console.error('Error updating status:', error);
+  // Change toolbar state when entering edit/add mode.
+  const actionBegin = (args) => {
+    if (args.requestType === 'beginEdit' || args.requestType === 'add') {
+      setIsEditing(true);
+    }
+    if ((args.requestType === 'beginEdit' || args.requestType === 'add') && statuses.length === 0) {
+      args.cancel = true;
     }
   };
 
-  // Dummy implementations for disable/enable
-  const handleDisableStatus = async (status) => {
-    console.log('Disable status with ID:', status.id);
+  // Process save, cancel, and delete actions.
+  const actionComplete = async (args) => {
+    if (args.requestType === 'save' && args.action === 'add') {
+      try {
+        const response = await fetch('/api/statuses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            statusLabel: args.data.statusLabel,
+            status: 'active'
+          })
+        });
+        if (response.ok) {
+          await fetchStatuses();
+        }
+      } catch (error) {
+        console.error('Error adding priority:', error);
+      }
+      setIsEditing(false);
+    }
+
+    if (args.requestType === 'save' && args.action === 'edit') {
+      try {
+        const response = await fetch(`/api/statuses/${args.data.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            statusLabel: args.data.statusLabel,
+            status: args.data.status
+          })
+        });
+        if (response.ok) {
+          await fetchStatuses();
+        }
+      } catch (error) {
+        console.error('Error updating priority:', error);
+      }
+      setIsEditing(false);
+    }
+
+    if (args.requestType === 'cancel') {
+      setIsEditing(false);
+    }
+  };
+
+  // Soft-delete (disable) the priority.
+  const handleDelete = async (data) => {
     try {
-      const response = await fetch(`/api/statuses/${status.id}`, {
+      const response = await fetch(`/api/statuses/${data.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          statusLabel: status.statusLabel,
+          statusLabel: data.statusLabel,
           status: 'disabled'
         })
       });
-
       if (response.ok) {
-        console.log('Status updated successfully');
         await fetchStatuses();
-        handleCancelEdit();
       } else {
-        console.error('Error updating status');
+        console.error('Error disabling priority');
       }
     } catch (error) {
-      console.error('Error updating status:', error);
+      console.error('Error disabling priority:', error);
     }
   };
 
-  const handleEnableStatus = async (status) => {
-    console.log('Enable status with ID:', status.id);
+  // Enable the priority (set status to active).
+  const handleEnable = async (data) => {
     try {
-      const response = await fetch(`/api/statuses/${status.id}`, {
+      const response = await fetch(`/api/statuses/${data.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          statusLabel: status.statusLabel,
+          statusLabel: data.statusLabel,
           status: 'active'
         })
       });
-
       if (response.ok) {
-        console.log('Status updated successfully');
         await fetchStatuses();
-        handleCancelEdit();
       } else {
-        console.error('Error updating status');
+        console.error('Error enabling priority');
       }
     } catch (error) {
-      console.error('Error updating status:', error);
+      console.error('Error enabling priority:', error);
     }
   };
+
+  // Template for the Actions column that displays a trashcan icon for active statuses
+  // and a plus icon for disabled statuses.
+  const commandTemplate = (props) => (
+    <>
+      {props.status === 'active' ? (
+        <button
+          className="btn btn-link p-0"
+          onClick={() => handleDelete(props)}
+          title="Disable"
+        >
+          <i className="bi bi-trash" style={{ fontSize: '1.25rem'}}></i>
+        </button>
+      ) : (
+        <button
+          className="btn btn-link p-0"
+          onClick={() => handleEnable(props)}
+          title="Enable"
+        >
+          <i className="bi bi-plus" style={{ fontSize: '1.4rem'}}></i>
+        </button>
+      )}
+    </>
+  );
 
   return (
     <Container className="py-4">
@@ -119,107 +181,50 @@ const StatusesTab = () => {
       {statuses.length === 0 ? (
         <p>No statuses found.</p>
       ) : (
-        <div className='col-md-6'>
-          <Table
-            striped
-            bordered
-            hover
-            className="mt-3"
-            style={{ tableLayout: 'fixed', width: '100%' }}
+        <div className="col-md-6" style={{ visibility: statuses.length > 0 ? 'visible' : 'hidden' }}>
+          <GridComponent
+            key={statuses.length}
+            ref={gridRef}
+            dataSource={statuses}
+            editSettings={editingSettings}
+            toolbar={toolbarOptions}
+            actionComplete={actionComplete}
+            actionBegin={actionBegin}
+            allowPaging={true}
+            pageSettings={pageSettings}
+            allowSorting={true}
+            sortSettings={sortSettings}
+            allowFiltering={true}
+            filterSettings={filterSettings}
+            allowSelection={true}
           >
-
-            <colgroup>
-              <col style={{ width: '40%' }} />   {/* Label */}
-              <col style={{ width: '40%' }} />   {/* Status */}
-              <col style={{ width: '20%' }} />   {/* Edit */}
-            </colgroup>
-
-            <thead>
-              <tr>
-                <th>Label</th>
-                <th>Status</th>
-                <th>Edit</th>
-              </tr>
-            </thead>
-            <tbody>
-              {statuses.map((stat) => (
-                <tr key={stat.id}>
-                  <td>
-                    {editingStatusId === stat.id ? (
-                      <Form.Control
-                        type="text"
-                        value={editingStatusLabel}
-                        onChange={(e) => setEditingStatusLabel(e.target.value)}
-                        size="sm"
-                        style={{
-                          width: '200px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
-                        }}
-                      />
-                    ) : (
-                      stat.statusLabel
-                    )}
-                  </td>
-                  <td>{stat.status}</td>
-                  <td>
-                    {editingStatusId === stat.id ? (
-                      // Editing mode: check (save) and X (cancel)
-                      <span style={{ display: 'inline-flex', gap: '1em' }}>
-                        <Button
-                          variant="link"
-                          size="sm"
-                          onClick={() => handleSaveEdit(stat.id)}
-                          style={{ padding: 0, border: 'none', background: 'none' }}
-                        >
-                          <i className="bi bi-check-lg" style={{ fontSize: '1rem' }}></i>
-                        </Button>
-                        <Button
-                          variant="link"
-                          size="sm"
-                          onClick={handleCancelEdit}
-                          style={{ padding: 0, border: 'none', background: 'none' }}
-                        >
-                          <i className="bi bi-x-lg" style={{ fontSize: '1rem' }}></i>
-                        </Button>
-                      </span>
-                    ) : (
-                      // Viewing mode: pencil icon + trash/plus icon
-                      <span style={{ display: 'inline-flex', gap: '1em' }}>
-                        <Button
-                          variant="link"
-                          size="sm"
-                          onClick={(e) => handleStartEditing(stat, e)}
-                          style={{ padding: 0, border: 'none', background: 'none' }}
-                        >
-                          <i className="bi bi-pencil-square" style={{ fontSize: '1rem' }}></i>
-                        </Button>
-                        {stat.status === 'active' ? (
-                          <Button
-                            variant="link"
-                            size="sm"
-                            onClick={() => handleDisableStatus(stat)}
-                            style={{ padding: 0, border: 'none', background: 'none' }}
-                          >
-                            <i className="bi bi-trash" style={{ fontSize: '1rem' }}></i>
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="link"
-                            size="sm"
-                            onClick={() => handleEnableStatus(stat)}
-                            style={{ padding: 0, border: 'none', background: 'none' }}
-                          >
-                            <i className="bi bi-plus-lg" style={{ fontSize: '1rem' }}></i>
-                          </Button>
-                        )}
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
+            <ColumnsDirective>
+              <ColumnDirective field="id" isPrimaryKey={true} visible={false} />
+              <ColumnDirective
+                field="statusLabel"
+                headerText="Label"
+                width="150"
+                textAlign="Left"
+                validationRules={{ required: true }}
+              />
+              <ColumnDirective
+                field="status"
+                headerText="Status"
+                width="150"
+                textAlign="Left"
+                allowEditing={false}
+              />
+              {/* New Actions column for delete/enable icons */}
+              <ColumnDirective
+                headerText="Actions"
+                width="120"
+                textAlign="Center"
+                template={commandTemplate}
+                allowEditing={false}
+              />
+            </ColumnsDirective>
+            <Inject services={[Page, Edit, Toolbar, Sort, Filter]} />
+          </GridComponent>
         </div>
       )}
     </Container>

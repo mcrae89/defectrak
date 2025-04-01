@@ -55,9 +55,16 @@ public class AccountController {
             return ResponseEntity.notFound().build();
         }
         User user = userOpt.get();
+        String currentEmail = user.getEmail();
 
-        if (!user.getEmail().equals(authenticatedUserEmail)) {
+        if (!currentEmail.equals(authenticatedUserEmail)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        String updatedEmail = userDto.getEmail().toLowerCase();
+        if (!currentEmail.equals(updatedEmail) && userRepository.findByEmail(updatedEmail).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("A user with this email already exists.");
         }
 
         // Update allowed fields

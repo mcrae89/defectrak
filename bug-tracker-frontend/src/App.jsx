@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Navigate } from 'react-router-dom';
+import { registerLicense } from '@syncfusion/ej2-base';
+
 import WelcomePage from './WelcomePage';
 import DashboardPage from './DashboardPage';
 import AccountPage from './AccountPage';
 import AdminPage from './AdminPage';
+
+registerLicense(process.env.REACT_APP_SYNCFUSION_LICENSE);
 
 function App() {
   const [authenticated, setAuthenticated] = useState(false);

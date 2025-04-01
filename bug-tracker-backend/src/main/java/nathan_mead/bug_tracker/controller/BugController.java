@@ -9,8 +9,6 @@ import nathan_mead.bug_tracker.repository.BugRepository;
 import nathan_mead.bug_tracker.repository.PriorityRepository;
 import nathan_mead.bug_tracker.repository.StatusRepository;
 import nathan_mead.bug_tracker.repository.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,8 +24,6 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/bugs")
 public class BugController {
-
-    private static final Logger logger = LoggerFactory.getLogger(BugController.class);
 
     @Autowired
     private BugRepository bugRepository;

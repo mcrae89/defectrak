@@ -1,23 +1,40 @@
-import React, { useEffect, useState } from 'react';
-import { Container, Table, Button, Form } from 'react-bootstrap';
+import React, { useEffect, useState, useRef } from 'react';
+import { Container } from 'react-bootstrap';
+import {
+  GridComponent,
+  ColumnsDirective,
+  ColumnDirective,
+  Edit,
+  Inject,
+  Toolbar,
+  Page,
+  Sort,
+  Filter
+} from '@syncfusion/ej2-react-grids';
+import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
 
 const UsersTab = () => {
   const [users, setUsers] = useState([]);
   const [activeRoles, setActiveRoles] = useState([]);
-  const [editingUserId, setEditingUserId] = useState(null);
-  const [editingUserRole, setEditingUserRole] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const gridRef = useRef(null);
 
   useEffect(() => {
     fetchUsers();
     fetchActiveRoles();
   }, []);
 
+  // Fetch users and map to include roleId for grid binding
   const fetchUsers = async () => {
     try {
       const response = await fetch('/api/users', { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
-        setUsers(data);
+        const mappedData = data.map(user => ({
+          ...user,
+          roleId: user.role ? user.role.id : ''
+        }));
+        setUsers(mappedData);
       } else {
         console.error('Error fetching users');
       }
@@ -26,7 +43,7 @@ const UsersTab = () => {
     }
   };
 
-  // Fetch all roles and filter to active roles only
+  // Fetch roles and filter to active roles only
   const fetchActiveRoles = async () => {
     try {
       const response = await fetch('/api/user-roles', { credentials: 'include' });
@@ -39,43 +56,6 @@ const UsersTab = () => {
       }
     } catch (error) {
       console.error('Error fetching roles:', error);
-    }
-  };
-
-  // Begin editing the user's role
-  const handleEditUser = (user) => {
-    setEditingUserId(user.id);
-    // Assuming user.role is an object with an id; adjust if needed
-    setEditingUserRole(user.role?.id || '');
-  };
-
-  const handleCancelEdit = () => {
-    setEditingUserId(null);
-    setEditingUserRole('');
-  };
-
-  // Save the updated user role
-  const handleSaveEditUser = async (user) => {
-    try {
-      // Find the full role object from activeRoles using the selected id
-      const updatedRole = activeRoles.find(role => role.id === editingUserRole);
-      const response = await fetch(`/api/users/${user.id}/role`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          userRoleId: Number(editingUserRole)
-        })        
-      });
-      if (response.ok) {
-        console.log('User updated successfully');
-        await fetchUsers();
-        handleCancelEdit();
-      } else {
-        console.error('Error updating user');
-      }
-    } catch (error) {
-      console.error('Error updating user:', error);
     }
   };
 
@@ -121,119 +101,154 @@ const UsersTab = () => {
     }
   };
 
+  // Only allow editing of the Role column
+  const editingSettings = {
+    allowEditing: true,
+    allowAdding: false,  // no adding
+    allowDeleting: false,
+    mode: 'Normal'
+  };
+
+  // Toolbar shows "Edit" when not editing, and "Update" / "Cancel" when editing.
+  const toolbarOptions = isEditing ? ['Update', 'Cancel'] : ['Edit'];
+
+  // Cancel any unexpected "add" request so no empty row appears
+  const actionBegin = (args) => {
+    if (args.requestType === 'beginEdit') {
+      setIsEditing(true);
+    }
+    if (args.requestType === 'add') {
+      // We do not allow adding users on this tab
+      args.cancel = true;
+    }
+  };
+
+  // On save, update the user's role via the API.
+  const actionComplete = async (args) => {
+    if (args.requestType === 'save' && args.action === 'edit') {
+      try {
+        const updatedUser = args.data;
+        const response = await fetch(`/api/users/${updatedUser.id}/role`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            userRoleId: Number(updatedUser.roleId)
+          })
+        });
+        if (response.ok) {
+          await fetchUsers();
+        } else {
+          console.error('Error updating user role');
+        }
+      } catch (error) {
+        console.error('Error updating user role:', error);
+      }
+      setIsEditing(false);
+    }
+    if (args.requestType === 'cancel') {
+      setIsEditing(false);
+    }
+  };
+
+  // Template for displaying the Role text (instead of roleId) in non-edit mode.
+  const roleTemplate = (rowData) => {
+    return rowData.role ? rowData.role.role : '';
+  };
+
+  // Actions column template: display a trash icon to disable active users
+  // or a plus icon to enable disabled users.
+  const commandTemplate = (props) => (
+    <>
+      {props.status === 'active' ? (
+        <button
+          className="btn btn-link p-0"
+          onClick={() => handleDisableUser(props)}
+          title="Disable"
+        >
+          <i className="bi bi-trash" style={{ fontSize: '1.25rem' }}></i>
+        </button>
+      ) : (
+        <button
+          className="btn btn-link p-0"
+          onClick={() => handleEnableUser(props)}
+          title="Enable"
+        >
+          <i className="bi bi-plus" style={{ fontSize: '1.4rem' }}></i>
+        </button>
+      )}
+    </>
+  );
+
   return (
     <Container className="py-4">
       <h3>Users</h3>
       {users.length === 0 ? (
         <p>No users found.</p>
       ) : (
-        <div className="col-md-8">
-          <Table
-            striped
-            bordered
-            hover
-            className="mt-3"
-            style={{ tableLayout: 'fixed', width: '100%' }}
+        <div className="col-md-12">
+          <GridComponent
+            ref={gridRef}
+            dataSource={users}
+            editSettings={editingSettings}
+            toolbar={toolbarOptions}
+            actionBegin={actionBegin}
+            actionComplete={actionComplete}
+            allowPaging={true}
+            pageSettings={{ pageSize: 10, pageSizes: ['10', '25', '50', 'All'] }}
+            allowSorting={true}
+            allowFiltering={true}
           >
-            <colgroup>
-              <col style={{ width: '25%' }} />
-              <col style={{ width: '25%' }} />
-              <col style={{ width: '25%' }} />
-              <col style={{ width: '15%' }} />
-              <col style={{ width: '10%' }} />
-            </colgroup>
-            <thead>
-              <tr>
-                <th>Email</th>
-                <th>Name</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Edit</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.email}</td>
-                  <td>
-                    {user.firstName} {user.lastName}
-                  </td>
-                  <td>
-                    {editingUserId === user.id ? (
-                      <Form.Control
-                        as="select"
-                        size="sm"
-                        value={editingUserRole}
-                        onChange={(e) => setEditingUserRole(e.target.value)}
-                      >
-                        <option value="">Select Role</option>
-                        {activeRoles.map((role) => (
-                          <option key={role.id} value={role.id}>
-                            {role.role}
-                          </option>
-                        ))}
-                      </Form.Control>
-                    ) : (
-                      user.role?.role
-                    )}
-                  </td>
-                  <td>{user.status}</td>
-                  <td>
-                    {editingUserId === user.id ? (
-                      <span style={{ display: 'inline-flex', gap: '1em' }}>
-                        <Button
-                          variant="link"
-                          size="sm"
-                          onClick={() => handleSaveEditUser(user)}
-                          style={{ padding: 0, border: 'none', background: 'none' }}
-                        >
-                          <i className="bi bi-check-lg" style={{ fontSize: '1rem' }}></i>
-                        </Button>
-                        <Button
-                          variant="link"
-                          size="sm"
-                          onClick={handleCancelEdit}
-                          style={{ padding: 0, border: 'none', background: 'none' }}
-                        >
-                          <i className="bi bi-x-lg" style={{ fontSize: '1rem' }}></i>
-                        </Button>
-                      </span>
-                    ) : (
-                      <span style={{ display: 'inline-flex', gap: '1em' }}>
-                        <Button
-                          variant="link"
-                          size="sm"
-                          onClick={() => handleEditUser(user)}
-                          style={{ padding: 0, border: 'none', background: 'none' }}
-                        >
-                          <i className="bi bi-pencil-square" style={{ fontSize: '1rem' }}></i>
-                        </Button>
-                        {user.status === 'active' ? (
-                          <Button
-                            variant="link"
-                            size="sm"
-                            onClick={() => handleDisableUser(user)}
-                            style={{ padding: 0, border: 'none', background: 'none' }}
-                          >
-                            <i className="bi bi-trash" style={{ fontSize: '1rem' }}></i>
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="link"
-                            size="sm"
-                            onClick={() => handleEnableUser(user)}
-                            style={{ padding: 0, border: 'none', background: 'none' }}
-                          >
-                            <i className="bi bi-plus-lg" style={{ fontSize: '1rem' }}></i>
-                          </Button>
-                        )}
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
+            <ColumnsDirective>
+              <ColumnDirective field="id" isPrimaryKey={true} visible={false} />
+              <ColumnDirective
+                field="email"
+                headerText="Email"
+                width="200"
+                textAlign="Left"
+                allowEditing={false}
+              />
+              <ColumnDirective
+                field="firstName"
+                headerText="First Name"
+                width="150"
+                textAlign="Left"
+                allowEditing={false}
+              />
+              <ColumnDirective
+                field="lastName"
+                headerText="Last Name"
+                width="150"
+                textAlign="Left"
+                allowEditing={false}
+              />
+              <ColumnDirective
+                field="roleId"
+                headerText="Role"
+                width="150"
+                textAlign="Left"
+                editType="dropdownedit"
+                edit={{ params: { value: 'id', text: 'role', dataSource: activeRoles } }}
+                template={roleTemplate}
+                validationRules={{ required: true }}
+              />
+              <ColumnDirective
+                field="status"
+                headerText="Status"
+                width="100"
+                textAlign="Left"
+                allowEditing={false}
+              />
+              <ColumnDirective
+                headerText="Actions"
+                width="120"
+                textAlign="Center"
+                template={commandTemplate}
+                allowEditing={false}
+              />
+            </ColumnsDirective>
+            <Inject services={[Page, Edit, Toolbar, Sort, Filter]} />
+          </GridComponent>
         </div>
       )}
     </Container>

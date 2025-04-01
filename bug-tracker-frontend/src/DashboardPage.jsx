@@ -57,7 +57,7 @@ const DashboardPage = ({ user }) => {
 
       {/* Main Content */}
       <Container className="mt-4">
-        <BugList />
+        <BugList user={user} />
       </Container>
     </>
   );
