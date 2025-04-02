@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Container, Navbar, Button, Form, Modal } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/WelcomePage.css';
+import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 
 const WelcomePage = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -137,22 +138,22 @@ const WelcomePage = () => {
           <Form onSubmit={handleLoginSubmit}>
             <Form.Group className="mb-3" controlId="login-email">
               <Form.Label>Email address</Form.Label>
-              <Form.Control
+              <TextBoxComponent
                 type="email"
                 placeholder="Enter email"
                 value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                required
+                change={(e) => setLoginEmail(e.value)}
+                required={true}
               />
             </Form.Group>
             <Form.Group className="mb-3" controlId="login-password">
               <Form.Label>Password</Form.Label>
-              <Form.Control
+              <TextBoxComponent
                 type="password"
                 placeholder="Password"
                 value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                required
+                change={(e) => setLoginPassword(e.value)}
+                required={true}
               />
             </Form.Group>
             {loginError && <div className="text-danger mb-3">{loginError}</div>}
@@ -172,52 +173,52 @@ const WelcomePage = () => {
           <Form onSubmit={handleRegisterSubmit}>
             <Form.Group className="mb-3" controlId="register-email">
               <Form.Label>Email address</Form.Label>
-              <Form.Control
+              <TextBoxComponent
                 type="email"
                 placeholder="Enter email"
                 value={registerEmail}
-                onChange={(e) => setRegisterEmail(e.target.value)}
-                required
+                change={(e) => setRegisterEmail(e.value)}
+                required={true}
               />
             </Form.Group>
             <Form.Group className="mb-3" controlId="register-first-name">
               <Form.Label>First Name</Form.Label>
-              <Form.Control
+              <TextBoxComponent
                 type="text"
                 placeholder="First Name"
                 value={registerFirstName}
-                onChange={(e) => setRegisterFirstName(e.target.value)}
-                required
+                change={(e) => setRegisterFirstName(e.value)}
+                required={true}
               />
             </Form.Group>
             <Form.Group className="mb-3" controlId="register-last-name">
               <Form.Label>Last Name</Form.Label>
-              <Form.Control
+              <TextBoxComponent
                 type="text"
                 placeholder="Last Name"
                 value={registerLastName}
-                onChange={(e) => setRegisterLastName(e.target.value)}
-                required
+                change={(e) => setRegisterLastName(e.value)}
+                required={true}
               />
             </Form.Group>
             <Form.Group className="mb-3" controlId="register-password">
               <Form.Label>Password</Form.Label>
-              <Form.Control
+              <TextBoxComponent
                 type="password"
                 placeholder="Password"
                 value={registerPassword}
-                onChange={(e) => setRegisterPassword(e.target.value)}
-                required
+                change={(e) => setRegisterPassword(e.value)}
+                required={true}
               />
             </Form.Group>
             <Form.Group className="mb-3" controlId="confirm-register-password">
               <Form.Label>Confirm Password</Form.Label>
-              <Form.Control
+              <TextBoxComponent
                 type="password"
                 placeholder="Confirm Password"
                 value={confirmRegisterPassword}
-                onChange={(e) => setConfirmRegisterPassword(e.target.value)}
-                required
+                change={(e) => setConfirmRegisterPassword(e.value)}
+                required={true}
               />
             </Form.Group>
             {registerError && <div className="text-danger mb-3">{registerError}</div>}

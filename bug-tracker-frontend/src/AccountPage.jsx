@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Modal, Button, Form, Navbar, Container, Row, Col, Dropdown, Nav } from 'react-bootstrap';
+import { Modal, Button, Navbar, Container, Row, Col, Dropdown, Nav } from 'react-bootstrap';
 import HoverDropdown from './components/HoverDropdown';
 import './css/AccountPage.css';
+
+import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
 
 const AccountPage = ({ user: initialUser, setUser, setAuthenticated }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -147,7 +149,7 @@ const AccountPage = ({ user: initialUser, setUser, setAuthenticated }) => {
       {/* Main Content */}
       <Container className="my-4">
         <Row className="justify-content-center">
-          <Col md={8}>
+          <Col md={5}>
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h2>Account Information</h2>
               <Button variant="outline-secondary" onClick={handleEditClick}>
@@ -155,39 +157,39 @@ const AccountPage = ({ user: initialUser, setUser, setAuthenticated }) => {
               </Button>
             </div>
             {isEditing ? (
-              <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3" controlId="formEmail">
-                  <Form.Label>Email:</Form.Label>
-                  <Form.Control 
-                    type="email"
+              <form onSubmit={handleSubmit}>
+                <div className="mb-3">
+                  <label htmlFor="formEmail">Email:</label>
+                  <TextBoxComponent 
+                    id="formEmail"
                     name="email"
                     value={formData.email}
-                    onChange={handleChange}
+                    change={(e) => handleChange({ target: { name: 'email', value: e.value } })}
                   />
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="formFirstName">
-                  <Form.Label>First Name:</Form.Label>
-                  <Form.Control 
-                    type="text"
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="formFirstName">First Name:</label>
+                  <TextBoxComponent 
+                    id="formFirstName"
                     name="firstName"
                     value={formData.firstName}
-                    onChange={handleChange}
+                    change={(e) => handleChange({ target: { name: 'firstName', value: e.value } })}
                   />
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="formLastName">
-                  <Form.Label>Last Name:</Form.Label>
-                  <Form.Control 
-                    type="text"
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="formLastName">Last Name:</label>
+                  <TextBoxComponent 
+                    id="formLastName"
                     name="lastName"
                     value={formData.lastName}
-                    onChange={handleChange}
+                    change={(e) => handleChange({ target: { name: 'lastName', value: e.value } })}
                   />
-                </Form.Group>
+                </div>
                 <div className="d-flex gap-2">
                   <Button type="submit" variant="primary">Update</Button>
                   <Button type="button" variant="secondary" onClick={handleCancel}>Cancel</Button>
                 </div>
-              </Form>
+              </form>
             ) : (
               <div>
                 {initialUser ? (
@@ -196,7 +198,7 @@ const AccountPage = ({ user: initialUser, setUser, setAuthenticated }) => {
                     <p>
                       Name: {initialUser.firstName} {initialUser.lastName}
                     </p>
-                    <Button variant="link" onClick={openPasswordModal} className="p-0">
+                    <Button type="button" variant="link" onClick={openPasswordModal} className="p-0">
                       Update Password
                     </Button>
                   </>
@@ -215,27 +217,27 @@ const AccountPage = ({ user: initialUser, setUser, setAuthenticated }) => {
           <Modal.Title>Update Password</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form onSubmit={handlePasswordUpdateSubmit}>
-            <Form.Group className="mb-3" controlId="newPassword">
-              <Form.Label>New Password</Form.Label>
-              <Form.Control 
+          <form onSubmit={handlePasswordUpdateSubmit}>
+            <div className="mb-3">
+              <label htmlFor="newPassword">New Password</label>
+              <TextBoxComponent 
+                id="newPassword"
                 type="password"
                 placeholder="Password"
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
+                change={(e) => setNewPassword(e.value)}
               />
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="confirmPassword">
-              <Form.Label>Confirm Password</Form.Label>
-              <Form.Control 
+            </div>
+            <div className="mb-3">
+              <label htmlFor="confirmPassword">Confirm Password</label>
+              <TextBoxComponent 
+                id="confirmPassword"
                 type="password"
                 placeholder="Password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
+                change={(e) => setConfirmPassword(e.value)}
               />
-            </Form.Group>
+            </div>
             {passwordError && <div className="text-danger mb-3">{passwordError}</div>}
             <div className="d-flex gap-2">
               <Button type="submit" variant="primary" disabled={!newPassword || newPassword !== confirmPassword}>
@@ -245,7 +247,7 @@ const AccountPage = ({ user: initialUser, setUser, setAuthenticated }) => {
                 Cancel
               </Button>
             </div>
-          </Form>
+          </form>
         </Modal.Body>
       </Modal>
     </>
