@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Container } from 'react-bootstrap';
+import { DataManager, Query } from '@syncfusion/ej2-data';
 import {
   GridComponent,
   ColumnsDirective,
@@ -11,7 +12,6 @@ import {
   Sort,
   Filter
 } from '@syncfusion/ej2-react-grids';
-import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
 
 const UsersTab = () => {
   const [users, setUsers] = useState([]);
@@ -20,21 +20,17 @@ const UsersTab = () => {
   const gridRef = useRef(null);
 
   useEffect(() => {
-    fetchUsers();
     fetchActiveRoles();
+    fetchUsers();
   }, []);
 
-  // Fetch users and map to include roleId for grid binding
+  // Fetch users and map each user to include both roleId and roleName
   const fetchUsers = async () => {
     try {
       const response = await fetch('/api/users', { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
-        const mappedData = data.map(user => ({
-          ...user,
-          roleId: user.role ? user.role.id : ''
-        }));
-        setUsers(mappedData);
+        setUsers(data);
       } else {
         console.error('Error fetching users');
       }
@@ -61,7 +57,6 @@ const UsersTab = () => {
 
   // Disable user (set status to "disabled")
   const handleDisableUser = async (user) => {
-    console.log('Disable user with ID:', user.id);
     try {
       const response = await fetch(`/api/users/${user.id}`, {
         method: 'PUT',
@@ -70,10 +65,7 @@ const UsersTab = () => {
         body: 'disabled'
       });
       if (response.ok) {
-        console.log('User disabled successfully');
         await fetchUsers();
-      } else {
-        console.error('Error disabling user');
       }
     } catch (error) {
       console.error('Error disabling user:', error);
@@ -82,7 +74,6 @@ const UsersTab = () => {
 
   // Enable user (set status to "active")
   const handleEnableUser = async (user) => {
-    console.log('Enable user with ID:', user.id);
     try {
       const response = await fetch(`/api/users/${user.id}`, {
         method: 'PUT',
@@ -91,34 +82,31 @@ const UsersTab = () => {
         body: 'active'
       });
       if (response.ok) {
-        console.log('User enabled successfully');
         await fetchUsers();
-      } else {
-        console.error('Error enabling user');
       }
     } catch (error) {
       console.error('Error enabling user:', error);
     }
   };
 
-  // Only allow editing of the Role column
+  // Allow only editing (no adding) and use inline editing mode
   const editingSettings = {
     allowEditing: true,
-    allowAdding: false,  // no adding
+    allowAdding: false,
     allowDeleting: false,
     mode: 'Normal'
   };
 
-  // Toolbar shows "Edit" when not editing, and "Update" / "Cancel" when editing.
   const toolbarOptions = isEditing ? ['Update', 'Cancel'] : ['Edit'];
+  const pageSettings = { pageSize: 10, pageSizes: ['10', '25', '50', 'All'] };
+  const sortSettings = { columns: [] };
+  const filterSettings = { type: 'Menu' };
 
-  // Cancel any unexpected "add" request so no empty row appears
   const actionBegin = (args) => {
     if (args.requestType === 'beginEdit') {
       setIsEditing(true);
     }
     if (args.requestType === 'add') {
-      // We do not allow adding users on this tab
       args.cancel = true;
     }
   };
@@ -128,32 +116,23 @@ const UsersTab = () => {
     if (args.requestType === 'save' && args.action === 'edit') {
       try {
         const updatedUser = args.data;
+        const selectedRoleId = updatedUser.role.id; // Handle both object and ID cases
+        console.log('Updated data:', args.data);
         const response = await fetch(`/api/users/${updatedUser.id}/role`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify({
-            userRoleId: Number(updatedUser.roleId)
+            userRoleId: Number(selectedRoleId)
           })
         });
-        if (response.ok) {
-          await fetchUsers();
-        } else {
-          console.error('Error updating user role');
-        }
+        if (response.ok) await fetchUsers();
       } catch (error) {
         console.error('Error updating user role:', error);
       }
       setIsEditing(false);
     }
-    if (args.requestType === 'cancel') {
-      setIsEditing(false);
-    }
-  };
-
-  // Template for displaying the Role text (instead of roleId) in non-edit mode.
-  const roleTemplate = (rowData) => {
-    return rowData.role ? rowData.role.role : '';
+    if (args.requestType === 'cancel') setIsEditing(false);
   };
 
   // Actions column template: display a trash icon to disable active users
@@ -180,6 +159,21 @@ const UsersTab = () => {
     </>
   );
 
+  // Template for displaying the role name when not editing
+  const roleTemplate = (props) => {
+    return props.role?.role || '';
+  };
+
+  // Custom dropdown editor configuration using your example approach
+  const dropdownParams = {
+    params: {
+      actionComplete: () => false,
+      dataSource: new DataManager(activeRoles),
+      fields: { text: "role", value: "id" },
+      query: new Query()
+    }
+  };
+
   return (
     <Container className="py-4">
       <h3>Users</h3>
@@ -195,50 +189,28 @@ const UsersTab = () => {
             actionBegin={actionBegin}
             actionComplete={actionComplete}
             allowPaging={true}
-            pageSettings={{ pageSize: 10, pageSizes: ['10', '25', '50', 'All'] }}
+            pageSettings={pageSettings}
             allowSorting={true}
+            sortSettings={sortSettings}
             allowFiltering={true}
+            filterSettings={filterSettings}
           >
             <ColumnsDirective>
               <ColumnDirective field="id" isPrimaryKey={true} visible={false} />
+              <ColumnDirective field="email" headerText="Email" width="200" textAlign="Left" allowEditing={false} />
+              <ColumnDirective field="firstName" headerText="First Name" width="150" textAlign="Left" allowEditing={false} />
+              <ColumnDirective field="lastName" headerText="Last Name" width="150" textAlign="Left" allowEditing={false} />
               <ColumnDirective
-                field="email"
-                headerText="Email"
-                width="200"
-                textAlign="Left"
-                allowEditing={false}
-              />
-              <ColumnDirective
-                field="firstName"
-                headerText="First Name"
-                width="150"
-                textAlign="Left"
-                allowEditing={false}
-              />
-              <ColumnDirective
-                field="lastName"
-                headerText="Last Name"
-                width="150"
-                textAlign="Left"
-                allowEditing={false}
-              />
-              <ColumnDirective
-                field="roleId"
+                field="role.id"  // Access the nested property
                 headerText="Role"
                 width="150"
                 textAlign="Left"
                 editType="dropdownedit"
-                edit={{ params: { value: 'id', text: 'role', dataSource: activeRoles } }}
+                edit={dropdownParams}
                 template={roleTemplate}
                 validationRules={{ required: true }}
               />
-              <ColumnDirective
-                field="status"
-                headerText="Status"
-                width="100"
-                textAlign="Left"
-                allowEditing={false}
-              />
+              <ColumnDirective field="status" headerText="Status" width="100" textAlign="Left" allowEditing={false} />
               <ColumnDirective
                 headerText="Actions"
                 width="120"
