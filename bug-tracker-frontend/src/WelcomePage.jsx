@@ -113,7 +113,6 @@ const WelcomePage = () => {
     <div className="welcome-page">
       {/* Header */}
       <CustomNavbar 
-        brand={<img src="/defectrak-logo.svg" alt="DefecTrak Logo" style={{ height: '50px' }} />}
         onLoginClick={handleLoginClick} 
       />
 

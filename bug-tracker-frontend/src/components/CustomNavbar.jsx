@@ -5,7 +5,7 @@ import HoverDropdown from './HoverDropdown';
 import { UserContext } from '../userContext';
 import { ToastContext } from './ToastContext';
 
-const CustomNavbar = ({ brand, onLoginClick = null }) => {
+const CustomNavbar = ({ brand=null, onLoginClick = null }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, setUser, setAuthenticated } = useContext(UserContext);
@@ -51,7 +51,10 @@ const CustomNavbar = ({ brand, onLoginClick = null }) => {
   return (
     <Navbar bg="dark" variant="dark" expand="lg">
       <Container>
-        <Navbar.Brand>{brand}</Navbar.Brand>
+        <Navbar.Brand>
+          <img src="/defectrak-logo.svg" alt="DefecTrak Logo" style={{ height: '50px', paddingRight: '1em' }} />
+          {brand}
+        </Navbar.Brand>
         <Nav className="ms-auto">
           {onLoginClick ? (
             <Button variant="light" onClick={onLoginClick}>
