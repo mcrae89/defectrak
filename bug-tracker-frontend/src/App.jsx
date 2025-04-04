@@ -1,52 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { Navigate } from 'react-router-dom';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { registerLicense } from '@syncfusion/ej2-base';
 
 import WelcomePage from './WelcomePage';
 import DashboardPage from './DashboardPage';
 import AccountPage from './AccountPage';
 import AdminPage from './AdminPage';
+import { UserProvider, UserContext } from './userContext';
+import { ToastProvider } from './components/ToastContext';
 
 registerLicense(process.env.REACT_APP_SYNCFUSION_LICENSE);
 
-function App() {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    async function checkAuth() {
-      try {
-        const response = await fetch('/api/me', {
-          credentials: 'include'
-        });
-        if (response.status === 200) {
-          const userData = await response.json();
-          setUser(userData);
-          setAuthenticated(true);
-        } else {
-          setAuthenticated(false);
-        }
-      } catch (error) {
-        setAuthenticated(false);
-      } finally {
-        setLoading(false);
-      }
-    }
-    checkAuth();
-  }, []);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+const AppRoutes = () => {
+  const { authenticated, user } = React.useContext(UserContext);
 
   return (
     <Routes>
-      <Route path="/" element={authenticated ? <DashboardPage user={user} /> : <WelcomePage />} />
-      <Route path="/account" element={authenticated ? (<AccountPage user={user} setUser={setUser} setAuthenticated={setAuthenticated} />) : (<Navigate to='/' />)} />
-      <Route path="/admin" element={authenticated && user.role.role == 'admin' ? (<AdminPage />) : (<Navigate to='/' />)} />
+      <Route path="/" element={authenticated ? <DashboardPage /> : <WelcomePage />} />
+      <Route path="/account" element={authenticated ? <AccountPage /> : <Navigate to="/" />} />
+      <Route
+        path="/admin"
+        element={authenticated && user?.role?.role === 'admin' ? <AdminPage /> : <Navigate to="/" />}
+      />
     </Routes>
+  );
+};
+
+function App() {
+  return (
+    <ToastProvider>
+      <UserProvider>
+        <AppRoutes />
+      </UserProvider>
+      </ToastProvider>
   );
 }
 

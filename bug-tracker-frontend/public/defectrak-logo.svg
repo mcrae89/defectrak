@@ -1,0 +1,15 @@
+<svg width="250" height="100" xmlns="http://www.w3.org/2000/svg">
+  <!-- White background -->
+  <rect width="250" height="100" fill="white"/>
+  <!-- Gear shape: large circle with gear-like lines -->
+  <circle cx="50" cy="50" r="20" fill="#2d3436"/>
+  <path d="M50 30 L50 20 M50 70 L50 80 M30 50 L20 50 M70 50 L80 50 
+           M38 38 L32 32 M62 62 L68 68 M38 62 L32 68 M62 38 L68 32" 
+        stroke="#0984e3" stroke-width="3" stroke-linecap="round"/>
+  <!-- Bug icon over the gear -->
+  <circle cx="50" cy="50" r="8" fill="#0984e3"/>
+  <!-- Brand Text -->
+  <text x="90" y="60" font-family="Open Sans, sans-serif" font-size="28" fill="#2d3436">
+    DefecTrak
+  </text>
+</svg>

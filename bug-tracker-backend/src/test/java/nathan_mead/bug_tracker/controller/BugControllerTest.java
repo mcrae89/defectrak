@@ -1,6 +1,5 @@
 package nathan_mead.bug_tracker.controller;
 
-import nathan_mead.bug_tracker.dto.*;
 import nathan_mead.bug_tracker.model.*;
 import nathan_mead.bug_tracker.repository.*;
 import nathan_mead.bug_tracker.config.SecurityConfig;
@@ -14,14 +13,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 
 import java.util.Arrays;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -283,7 +280,7 @@ public class BugControllerTest {
 
     @WithMockUser(username = "user@example.com", roles = {"GENERAL"})
     @Test
-    public void testUpdateUserUsingUserDto_NotFound() throws Exception {
+    public void testUpdateBugUsingBugDto_NotFound() throws Exception {
         // Stub bugRepository.findById(5L) to return the existing bug.
         Mockito.when(bugRepository.findById(1L)).thenReturn(Optional.empty());
 

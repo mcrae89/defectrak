@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Container } from 'react-bootstrap';
 import {
   GridComponent,
@@ -11,10 +11,12 @@ import {
   Sort,
   Filter
 } from '@syncfusion/ej2-react-grids';
+import { ToastContext } from './components/ToastContext';
 
 const StatusesTab = () => {
   const [statuses, setStatuses] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
+  const { showToast } = useContext(ToastContext);
   const gridRef = useRef(null);
 
   useEffect(() => {
@@ -28,13 +30,13 @@ const StatusesTab = () => {
         const data = await response.json();
         setStatuses(data);
       } else {
-        console.error('Error fetching statuses');
+        showToast("Error fetching statuses!", 'error');
       }
     } catch (error) {
       console.error('Error fetching statuses:', error);
     }
   };
-
+  
   // Inline editing & adding settings.
   const editingSettings = {
     allowEditing: true,
@@ -52,6 +54,24 @@ const StatusesTab = () => {
 
   // Change toolbar state when entering edit/add mode.
   const actionBegin = (args) => {
+	if (args.requestType === 'save') {
+      const newStatusLabel = args.data.statusLabel;
+      if (args.action === 'add') {
+        // For new rows, check if any priority already has the same level.
+        if (statuses.some(item => item.statusLabel === newStatusLabel)) {
+          showToast("Status already exists");
+          args.cancel = true;
+          return;
+        }
+      } else if (args.action === 'edit') {
+        // For edits, ignore the current row being edited.
+        if (statuses.some(item => item.statusLabel === newStatusLabel && item.id !== args.data.id)) {
+          showToast("Status already exists");
+          args.cancel = true;
+          return;
+        }
+      }
+    }
     if (args.requestType === 'beginEdit' || args.requestType === 'add') {
       setIsEditing(true);
     }
@@ -75,9 +95,11 @@ const StatusesTab = () => {
         });
         if (response.ok) {
           await fetchStatuses();
+          showToast("Status successfully added!", 'success');
         }
       } catch (error) {
-        console.error('Error adding priority:', error);
+        console.error('Error adding status:', error);
+        showToast("Error adding status!", 'error');
       }
       setIsEditing(false);
     }
@@ -95,9 +117,11 @@ const StatusesTab = () => {
         });
         if (response.ok) {
           await fetchStatuses();
+          showToast("Status successfully updated!", 'success');
         }
       } catch (error) {
-        console.error('Error updating priority:', error);
+        console.error('Error updating status:', error);
+        showToast("Error updating status!", 'error');
       }
       setIsEditing(false);
     }
@@ -121,8 +145,9 @@ const StatusesTab = () => {
       });
       if (response.ok) {
         await fetchStatuses();
+        showToast("Status successfully disabled!", 'success');
       } else {
-        console.error('Error disabling priority');
+        showToast("Error disabling status!", 'error');
       }
     } catch (error) {
       console.error('Error disabling priority:', error);
@@ -143,8 +168,9 @@ const StatusesTab = () => {
       });
       if (response.ok) {
         await fetchStatuses();
+        showToast("Status successfully enabled!", 'success');
       } else {
-        console.error('Error enabling priority');
+        showToast("Error enabling status!", 'error');
       }
     } catch (error) {
       console.error('Error enabling priority:', error);

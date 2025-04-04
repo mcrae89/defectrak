@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import { Container } from 'react-bootstrap';
 import { DataManager, Query } from '@syncfusion/ej2-data';
 import {
@@ -12,11 +12,13 @@ import {
   Sort,
   Filter
 } from '@syncfusion/ej2-react-grids';
+import { ToastContext } from './components/ToastContext';
 
 const UsersTab = () => {
   const [users, setUsers] = useState([]);
   const [activeRoles, setActiveRoles] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
+  const { showToast } = useContext(ToastContext);
   const gridRef = useRef(null);
 
   useEffect(() => {
@@ -32,7 +34,7 @@ const UsersTab = () => {
         const data = await response.json();
         setUsers(data);
       } else {
-        console.error('Error fetching users');
+        showToast("Error fetching users!", 'error');
       }
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -48,7 +50,7 @@ const UsersTab = () => {
         const active = data.filter(role => role.status === 'active');
         setActiveRoles(active);
       } else {
-        console.error('Error fetching roles');
+        showToast("Error fetching roles!", 'error');
       }
     } catch (error) {
       console.error('Error fetching roles:', error);
@@ -66,6 +68,9 @@ const UsersTab = () => {
       });
       if (response.ok) {
         await fetchUsers();
+        showToast("Successfully disabled user!", 'success');
+      } else {
+        showToast("Error disabling user!", 'error');
       }
     } catch (error) {
       console.error('Error disabling user:', error);
@@ -83,6 +88,9 @@ const UsersTab = () => {
       });
       if (response.ok) {
         await fetchUsers();
+        showToast("Successfully enabled user!", 'success');
+      } else {
+        showToast("Error enabling user!", 'error');
       }
     } catch (error) {
       console.error('Error enabling user:', error);
@@ -117,7 +125,6 @@ const UsersTab = () => {
       try {
         const updatedUser = args.data;
         const selectedRoleId = updatedUser.role.id; // Handle both object and ID cases
-        console.log('Updated data:', args.data);
         const response = await fetch(`/api/users/${updatedUser.id}/role`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -128,7 +135,7 @@ const UsersTab = () => {
         });
         if (response.ok) await fetchUsers();
       } catch (error) {
-        console.error('Error updating user role:', error);
+        showToast("Error updating user!", 'error');
       }
       setIsEditing(false);
     }

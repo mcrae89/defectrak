@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Container } from 'react-bootstrap';
 import {
   GridComponent,
@@ -11,11 +11,13 @@ import {
   Sort,
   Filter
 } from '@syncfusion/ej2-react-grids';
+import { ToastContext } from './components/ToastContext';
 
 const RolesTab = () => {
   const [roles, setRoles] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const gridRef = useRef(null);
+  const { showToast } = useContext(ToastContext);
 
   useEffect(() => {
     fetchRoles();
@@ -28,7 +30,7 @@ const RolesTab = () => {
         const data = await response.json();
         setRoles(data);
       } else {
-        console.error('Error fetching roles');
+        showToast("Error fetching roles!", 'error');
       }
     } catch (error) {
       console.error('Error fetching roles:', error);
@@ -52,6 +54,24 @@ const RolesTab = () => {
 
   // Change toolbar state when entering edit/add mode.
   const actionBegin = (args) => {
+	if (args.requestType === 'save') {
+      const newRole = args.data.role;
+      if (args.action === 'add') {
+        // For new rows, check if any priority already has the same level.
+        if (roles.some(item => item.role === newRole)) {
+          showToast("Role already exists");
+          args.cancel = true;
+          return;
+        }
+      } else if (args.action === 'edit') {
+        // For edits, ignore the current row being edited.
+        if (roles.some(item => item.role === newRole && item.id !== args.data.id)) {
+          showToast("Role already exists");
+          args.cancel = true;
+          return;
+        }
+      }
+    }
     if (args.requestType === 'beginEdit' || args.requestType === 'add') {
       setIsEditing(true);
     }
@@ -73,11 +93,12 @@ const RolesTab = () => {
             status: 'active'
           })
         });
-        if (response.ok) {
+        if (response.ok || response.status === 409) {
           await fetchRoles();
+          showToast("Role successfully added!", 'success');
         }
       } catch (error) {
-        console.error('Error adding priority:', error);
+        showToast("Error adding status!", 'error');
       }
       setIsEditing(false);
     }
@@ -95,9 +116,10 @@ const RolesTab = () => {
         });
         if (response.ok) {
           await fetchRoles();
+          showToast("Role successfully updated!", 'success');
         }
       } catch (error) {
-        console.error('Error updating priority:', error);
+        showToast("Error updating status!", 'error');
       }
       setIsEditing(false);
     }
@@ -121,8 +143,9 @@ const RolesTab = () => {
       });
       if (response.ok) {
         await fetchRoles();
+        showToast("Role successfully disabled!", 'success');
       } else {
-        console.error('Error disabling priority');
+        showToast("Error disabling role!", 'error');
       }
     } catch (error) {
       console.error('Error disabling priority:', error);
@@ -143,8 +166,9 @@ const RolesTab = () => {
       });
       if (response.ok) {
         await fetchRoles();
+        showToast("Role successfully enabled!", 'success');
       } else {
-        console.error('Error enabling priority');
+        showToast("Error enabling role!", 'error');
       }
     } catch (error) {
       console.error('Error enabling priority:', error);

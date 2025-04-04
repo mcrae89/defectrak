@@ -1,24 +1,25 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Modal, Button, Navbar, Container, Row, Col, Dropdown, Nav } from 'react-bootstrap';
-import HoverDropdown from './components/HoverDropdown';
+import React, { useState, useContext } from 'react';
+import { Modal, Button, Container, Row, Col } from 'react-bootstrap';
+import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
+import { UserContext } from './userContext';
+import CustomNavbar from './components/CustomNavbar';
+import { ToastContext } from './components/ToastContext';
 import './css/AccountPage.css';
 
-import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
+const AccountPage = () => {
+  const { user, setUser } = useContext(UserContext);
+  const { showToast } = useContext(ToastContext);
 
-const AccountPage = ({ user: initialUser, setUser, setAuthenticated }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    email: initialUser?.email || '',
-    firstName: initialUser?.firstName || '',
-    lastName: initialUser?.lastName || ''
+    email: user?.email || '',
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || ''
   });
   const [showModal, setShowModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
-
-  const navigate = useNavigate();
 
   const handleEditClick = () => {
     setIsEditing(true);
@@ -26,9 +27,9 @@ const AccountPage = ({ user: initialUser, setUser, setAuthenticated }) => {
 
   const handleCancel = () => {
     setFormData({
-      email: initialUser?.email || '',
-      firstName: initialUser?.firstName || '',
-      lastName: initialUser?.lastName || ''
+      email: user?.email || '',
+      firstName: user?.firstName || '',
+      lastName: user?.lastName || ''
     });
     setIsEditing(false);
   };
@@ -40,7 +41,6 @@ const AccountPage = ({ user: initialUser, setUser, setAuthenticated }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Updated data:", formData);
 
     try {
       const response = await fetch('/api/me', {
@@ -53,35 +53,14 @@ const AccountPage = ({ user: initialUser, setUser, setAuthenticated }) => {
       if (response.ok) {
         const updatedUser = await response.json();
         setUser(updatedUser);
+        showToast("Account information updated successfully!", 'success');
       } else {
-        const errorData = await response.json();
-        console.error('Error during updating:', errorData);
+        showToast("Error updating account information", 'error');
       }
     } catch (error) {
       console.error('Error during updating:', error);
     }
     setIsEditing(false);
-  };
-
-  const handleLogout = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('/api/logout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
-      });
-      if (response.ok) {
-        setUser(null);
-        setAuthenticated(false);
-        navigate('/');
-      } else {
-        const errorData = await response.json();
-        console.log(errorData);
-      }
-    } catch (error) {
-      console.error('Error during logout:', error);
-    }
   };
 
   const openPasswordModal = () => {
@@ -110,11 +89,11 @@ const AccountPage = ({ user: initialUser, setUser, setAuthenticated }) => {
         body: newPassword
       });
       if (response.ok) {
-        console.log('Password update successful');
+        showToast("Password updated successfully!", 'success');
         closePasswordModal();
       } else {
         const errorData = await response.json();
-        console.error('Error updating password:', errorData);
+        showToast("Error updating password", 'error');
         setPasswordError(errorData.message || "Error updating password");
       }
     } catch (error) {
@@ -125,31 +104,10 @@ const AccountPage = ({ user: initialUser, setUser, setAuthenticated }) => {
 
   return (
     <>
-      <Navbar bg="dark" variant="dark" expand="lg">
-        <Container>
-          <Navbar.Brand>Account</Navbar.Brand>
-          <Nav className="ms-auto">
-            <HoverDropdown 
-              toggleContent={<i className="bi bi-person-circle" style={{ fontSize: '1.5rem' }}></i>}
-            >
-              <Dropdown.Item onClick={handleLogout}>Logout</Dropdown.Item>
-            </HoverDropdown>
-            <HoverDropdown 
-              toggleContent={<i className="bi bi-list" style={{ fontSize: '1.5rem' }}></i>}
-            >
-              <Dropdown.Item onClick={() => navigate('/')}>Dashboard</Dropdown.Item>
-              {initialUser?.role?.role === 'admin' && (
-                <Dropdown.Item onClick={() => navigate('/admin')}>Admin</Dropdown.Item>
-              )}
-            </HoverDropdown>
-          </Nav>
-        </Container>
-      </Navbar>
-
-      {/* Main Content */}
+      <CustomNavbar brand="Account" />
       <Container className="my-4">
         <Row className="justify-content-center">
-          <Col md={5}>
+          <Col md={5}  className='account-form'>
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h2>Account Information</h2>
               <Button variant="outline-secondary" onClick={handleEditClick}>
@@ -192,11 +150,11 @@ const AccountPage = ({ user: initialUser, setUser, setAuthenticated }) => {
               </form>
             ) : (
               <div>
-                {initialUser ? (
+                {user ? (
                   <>
-                    <p>Email: {initialUser.email}</p>
+                    <p>Email: {user.email}</p>
                     <p>
-                      Name: {initialUser.firstName} {initialUser.lastName}
+                      Name: {user.firstName} {user.lastName}
                     </p>
                     <Button type="button" variant="link" onClick={openPasswordModal} className="p-0">
                       Update Password
@@ -211,7 +169,6 @@ const AccountPage = ({ user: initialUser, setUser, setAuthenticated }) => {
         </Row>
       </Container>
 
-      {/* Password Update Modal */}
       <Modal show={showModal} onHide={closePasswordModal}>
         <Modal.Header closeButton>
           <Modal.Title>Update Password</Modal.Title>

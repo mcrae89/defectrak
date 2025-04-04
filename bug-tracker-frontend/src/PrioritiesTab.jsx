@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Container } from 'react-bootstrap';
 import {
   GridComponent,
@@ -11,11 +11,13 @@ import {
   Sort,
   Filter
 } from '@syncfusion/ej2-react-grids';
+import { ToastContext } from './components/ToastContext';
 
 const PrioritiesTab = () => {
   const [priorities, setPriorities] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const gridRef = useRef(null);
+  const { showToast } = useContext(ToastContext);
 
   useEffect(() => {
     fetchPriorities();
@@ -28,7 +30,7 @@ const PrioritiesTab = () => {
         const data = await response.json();
         setPriorities(data);
       } else {
-        console.error('Error fetching priorities');
+        showToast("Error fetching priorities!", 'error');
       }
     } catch (error) {
       console.error('Error fetching priorities:', error);
@@ -52,6 +54,25 @@ const PrioritiesTab = () => {
 
   // Change toolbar state when entering edit/add mode.
   const actionBegin = (args) => {
+	if (args.requestType === 'save') {
+      const newLevel = args.data.level;
+      if (args.action === 'add') {
+        // For new rows, check if any priority already has the same level.
+        if (priorities.some(item => item.level === newLevel)) {
+          showToast("Priority already exists");
+          args.cancel = true;
+          return;
+        }
+      } else if (args.action === 'edit') {
+        // For edits, ignore the current row being edited.
+        if (priorities.some(item => item.level === newLevel && item.id !== args.data.id)) {
+          showToast("Priority already exists");
+          args.cancel = true;
+          return;
+        }
+      }
+    }
+    
     if (args.requestType === 'beginEdit' || args.requestType === 'add') {
       setIsEditing(true);
     }
@@ -75,9 +96,10 @@ const PrioritiesTab = () => {
         });
         if (response.ok) {
           await fetchPriorities();
+          showToast("Priority successfully added!", 'success');
         }
       } catch (error) {
-        console.error('Error adding priority:', error);
+        showToast("Error adding priority!", 'error');
       }
       setIsEditing(false);
     }
@@ -95,9 +117,10 @@ const PrioritiesTab = () => {
         });
         if (response.ok) {
           await fetchPriorities();
+          showToast("Priority successfully updated!", 'success');
         }
       } catch (error) {
-        console.error('Error updating priority:', error);
+        showToast("Error updating priority!", 'error');
       }
       setIsEditing(false);
     }
@@ -121,8 +144,9 @@ const PrioritiesTab = () => {
       });
       if (response.ok) {
         await fetchPriorities();
+        showToast("Priority successfully disabled!", 'success');
       } else {
-        console.error('Error disabling priority');
+        showToast
       }
     } catch (error) {
       console.error('Error disabling priority:', error);
@@ -143,8 +167,9 @@ const PrioritiesTab = () => {
       });
       if (response.ok) {
         await fetchPriorities();
+        showToast("Priority successfully enabled!", 'success');
       } else {
-        console.error('Error enabling priority');
+        showToast("Error enabling priority!", 'error');
       }
     } catch (error) {
       console.error('Error enabling priority:', error);
@@ -161,7 +186,7 @@ const PrioritiesTab = () => {
           onClick={() => handleDelete(props)}
           title="Disable"
         >
-          <i className="bi bi-trash" style={{ fontSize: '1.25rem'}}></i>
+          <i className="bi bi-trash" style={{ fontSize: '1.25rem' }}></i>
         </button>
       ) : (
         <button
@@ -169,7 +194,7 @@ const PrioritiesTab = () => {
           onClick={() => handleEnable(props)}
           title="Enable"
         >
-          <i className="bi bi-plus" style={{ fontSize: '1.4rem'}}></i>
+          <i className="bi bi-plus" style={{ fontSize: '1.4rem' }}></i>
         </button>
       )}
     </>

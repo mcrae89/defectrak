@@ -1,14 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Modal, Button, Container, Row, Col } from 'react-bootstrap';
 import { AutoCompleteComponent, DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
+import { UserContext } from '../userContext';
+import { ToastContext } from './ToastContext';
 import Fuse from 'fuse.js';
 
-const BugList = ({ user }) => {
+const BugList = () => {
   const [bugs, setBugs] = useState([]);
   const [selectedBug, setSelectedBug] = useState(null); // null indicates create mode
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const { user } = useContext(UserContext);
+  const { showToast } = useContext(ToastContext);
+
+
   const maxTitleLength = 255;
   const maxDescriptionLength = 4000;
   const cardHeight = '250px';
@@ -167,9 +173,11 @@ const BugList = ({ user }) => {
         const updatedBugFromServer = await response.json();
         setBugs(bugs.map(b => b.id === updatedBugFromServer.id ? updatedBugFromServer : b));
         setSelectedBug(updatedBugFromServer);
+        showToast("Bug successfully updated!", 'success');
       } else {
         const errorData = await response.json();
         console.error('Error during updating:', errorData);
+        showToast("Error updating bug!", 'error');
       }
     } catch (error) {
       console.error('Error during updating:', error);
@@ -200,9 +208,11 @@ const BugList = ({ user }) => {
         const createdBug = await response.json();
         setBugs([...bugs, createdBug]);
         setShowModal(false);
+        showToast("Bug successfully created!", 'success');
       } else {
         const errorData = await response.json();
         console.error('Error during creation:', errorData);
+        showToast("Error creating bug!", 'error');
       }
     } catch (error) {
       console.error('Error during creation:', error);

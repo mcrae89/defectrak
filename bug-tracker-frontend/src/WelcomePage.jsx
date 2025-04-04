@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Container, Navbar, Button, Form, Modal } from 'react-bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import './css/WelcomePage.css';
+import React, { useState, useContext } from 'react';
+import { Container, Button, Form, Modal } from 'react-bootstrap';
 import { TextBoxComponent } from '@syncfusion/ej2-react-inputs';
+import CustomNavbar from './components/CustomNavbar';
+import { ToastContext } from './components/ToastContext';
 
 const WelcomePage = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -16,6 +16,7 @@ const WelcomePage = () => {
   const [registerFirstName, setRegisterFirstName] = useState('');
   const [registerLastName, setRegisterLastName] = useState('');
   const [registerError, setRegisterError] = useState(null);
+  const { showToast } = useContext(ToastContext);
 
   const handleLoginClick = () => {
     setShowLoginModal(true);
@@ -50,7 +51,6 @@ const WelcomePage = () => {
       });
 
       if (response.ok) {
-        console.log('Login successful');
         handleClose();
         window.location.reload();
       } else {
@@ -83,15 +83,16 @@ const WelcomePage = () => {
       });
 
       if (response.ok) {
-        console.log('Registration successful');
+        showToast("Registration successful! Please login.", 'success');
         handleClose();
         setShowLoginModal(true);
       } else if (response.status === 409) {
         const errorText = await response.text();
         setRegisterError(errorText || 'A user with this email already exists.');
       } else {
+        showToast("Registration failed. Please try again.", 'error');
         const errorData = await response.json();
-        setRegisterError(errorData.message || 'Invalid credentials');
+        setRegisterError(errorData.message || 'Registration failed. Please try again.');
       }
     } catch (error) {
       console.error('Error during registration:', error);
@@ -111,18 +112,14 @@ const WelcomePage = () => {
   return (
     <div className="welcome-page">
       {/* Header */}
-      <Navbar bg="dark" variant="dark">
-        <Container>
-          <Navbar.Brand>Bug Tracker</Navbar.Brand>
-          <Button variant="light" onClick={handleLoginClick}>
-            Login
-          </Button>
-        </Container>
-      </Navbar>
+      <CustomNavbar 
+        brand={<img src="/defectrak-logo.svg" alt="DefecTrak Logo" style={{ height: '50px' }} />}
+        onLoginClick={handleLoginClick} 
+      />
 
       {/* Main Content */}
       <Container className="main-content text-center py-5">
-        <h1>Welcome to Bug Tracker</h1>
+        <h1>Welcome to DefecTrack</h1>
         <p>Your one-stop solution to track and manage bugs efficiently.</p>
         <Button variant="primary" className="mt-3" onClick={handleRegisterClick}>
           Get Started
