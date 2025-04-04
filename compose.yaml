@@ -1,8 +1,8 @@
 services:
   backend:
     image: defectrak/starter-back
-    build: ./bug-tracker-backend
-    container_name: bug-tracker-backend
+    build: ./defectrak-backend
+    container_name: defectrak-backend
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -11,22 +11,22 @@ services:
     networks:
       - app-network
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/bug_tracker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/defectrak
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
   frontend:
     image: defectrak/starter-front
     build:
-      context: ./bug-tracker-frontend
-    container_name: bug-tracker-frontend
+      context: ./defectrak-frontend
+    container_name: defectrak-frontend
     restart: unless-stopped
     ports:
       - "3000:80"
     depends_on:
       - backend
     volumes:
-      - ./bug-tracker-frontend:/app
+      - ./defectrak-frontend:/app
       - /app/node_modules
     networks:
       - app-network
@@ -35,7 +35,7 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: bug-tracker-nginx
+    container_name: defectrak-nginx
     ports:
       - "80:80"      # Nginx listens on port 80 externally
     volumes:
@@ -48,10 +48,10 @@ services:
 
   db:
     image: postgres:15
-    container_name: bug-tracker-db
+    container_name: defectrak-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: bug_tracker
+      POSTGRES_DB: defectrak
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -60,8 +60,8 @@ services:
       - app-network
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./bug-tracker-backend/scripts/db/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./bug-tracker-backend/scripts/db/seed.sql:/docker-entrypoint-initdb.d/seed.sql
+      - ./defectrak-backend/scripts/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./defectrak-backend/scripts/db/seed.sql:/docker-entrypoint-initdb.d/seed.sql
 
 volumes:
   postgres_data:
