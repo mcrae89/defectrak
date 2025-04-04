@@ -1,5 +1,6 @@
 services:
   backend:
+    image: defectrak/starter-back
     build: ./bug-tracker-backend
     container_name: bug-tracker-backend
     restart: unless-stopped
@@ -15,6 +16,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
   frontend:
+    image: defectrak/starter-front
     build:
       context: ./bug-tracker-frontend
     container_name: bug-tracker-frontend

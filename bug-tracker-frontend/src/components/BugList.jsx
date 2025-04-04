@@ -33,6 +33,14 @@ const BugList = () => {
   const [activeStatuses, setActiveStatuses] = useState([]);
   const [allUsers, setAllUsers] = useState([]); // all active users for assignee autocomplete
 
+
+  const isFormValid =
+    editTitle &&
+    editDescription &&
+    editPriority &&
+    editStatus &&
+    editAssignee;
+
   // Fetch bugs from the API
   useEffect(() => {
     fetch('/api/bugs')
@@ -373,7 +381,7 @@ const BugList = () => {
             )}
 
             <p><strong>Created By:</strong></p>
-            <p>{selectedBug && selectedBug.createdByUserId ? `${selectedBug.createdByUserId.firstName} ${selectedBug.createdByUserId.lastName}` : '-'}</p>
+            <p>{selectedBug && selectedBug.createdBy ? `${selectedBug.createdBy.firstName} ${selectedBug.createdBy.lastName}` : '-'}</p>
           </>
         </Modal.Body>
         <Modal.Footer>
@@ -381,7 +389,7 @@ const BugList = () => {
             <>
               {selectedBug ? (
                 <>
-                  <Button variant="primary" onClick={handleSaveClick}>
+                  <Button variant="primary" onClick={handleSaveClick} disabled={!isFormValid}>
                     Save
                   </Button>
                   <Button variant="secondary" onClick={handleCancelEdit}>
@@ -389,7 +397,7 @@ const BugList = () => {
                   </Button>
                 </>
               ) : (
-                <Button variant="primary" onClick={handleCreateBug}>
+                <Button variant="primary" onClick={handleCreateBug} disabled={!isFormValid}>
                   Create
                 </Button>
               )}

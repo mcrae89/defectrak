@@ -115,39 +115,39 @@ const AccountPage = () => {
               </Button>
             </div>
             {isEditing ? (
-              <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label htmlFor="formEmail">Email:</label>
+              <Form onSubmit={handleSubmit}>
+                <Form.Group className="mb-3" controlId="formEmail">
+                  <Form.Label>Email:</Form.Label>
                   <TextBoxComponent 
                     id="formEmail"
                     name="email"
                     value={formData.email}
                     change={(e) => handleChange({ target: { name: 'email', value: e.value } })}
                   />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="formFirstName">First Name:</label>
+                </Form.Group>
+                <Form.Group className="mb-3" controlId="formFirstName">
+                  <Form.Label>First Name:</Form.Label>
                   <TextBoxComponent 
                     id="formFirstName"
                     name="firstName"
                     value={formData.firstName}
                     change={(e) => handleChange({ target: { name: 'firstName', value: e.value } })}
                   />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="formLastName">Last Name:</label>
+                </Form.Group>
+                <Form.Group className="mb-3" controlId="formLastName">
+                  <Form.Label>Last Name:</Form.Label>
                   <TextBoxComponent 
                     id="formLastName"
                     name="lastName"
                     value={formData.lastName}
                     change={(e) => handleChange({ target: { name: 'lastName', value: e.value } })}
                   />
-                </div>
+                </Form.Group>
                 <div className="d-flex gap-2">
                   <Button type="submit" variant="primary">Update</Button>
                   <Button type="button" variant="secondary" onClick={handleCancel}>Cancel</Button>
                 </div>
-              </form>
+              </Form>
             ) : (
               <div>
                 {user ? (
@@ -174,9 +174,9 @@ const AccountPage = () => {
           <Modal.Title>Update Password</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <form onSubmit={handlePasswordUpdateSubmit}>
-            <div className="mb-3">
-              <label htmlFor="newPassword">New Password</label>
+          <Form onSubmit={handlePasswordUpdateSubmit}>
+            <Form.Group className="mb-3" controlId="newPassword">
+              <Form.Label>New Password</Form.Label>
               <TextBoxComponent 
                 id="newPassword"
                 type="password"
@@ -184,9 +184,9 @@ const AccountPage = () => {
                 value={newPassword}
                 change={(e) => setNewPassword(e.value)}
               />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="confirmPassword">Confirm Password</label>
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="confirmPassword">
+              <Form.Label>Confirm Password</Form.Label>
               <TextBoxComponent 
                 id="confirmPassword"
                 type="password"
@@ -194,7 +194,7 @@ const AccountPage = () => {
                 value={confirmPassword}
                 change={(e) => setConfirmPassword(e.value)}
               />
-            </div>
+            </Form.Group>
             {passwordError && <div className="text-danger mb-3">{passwordError}</div>}
             <div className="d-flex gap-2">
               <Button type="submit" variant="primary" disabled={!newPassword || newPassword !== confirmPassword}>
@@ -204,7 +204,7 @@ const AccountPage = () => {
                 Cancel
               </Button>
             </div>
-          </form>
+          </Form>
         </Modal.Body>
       </Modal>
     </>

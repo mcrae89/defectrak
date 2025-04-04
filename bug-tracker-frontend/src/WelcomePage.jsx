@@ -41,7 +41,7 @@ const WelcomePage = () => {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setLoginError(null);
-
+  
     try {
       const response = await fetch('/api/login', {
         method: 'POST',
@@ -49,19 +49,27 @@ const WelcomePage = () => {
         credentials: 'include',
         body: JSON.stringify({ email: loginEmail, password: loginPassword })
       });
-
+  
       if (response.ok) {
         handleClose();
         window.location.reload();
       } else {
+        // Parse error response
         const errorData = await response.json();
-        setLoginError(errorData.message || 'Invalid credentials');
+  
+        // Check for a specific status (e.g., 401 for inactive/disabled account)
+        if (response.status === 401 || response.status === 403) {
+          setLoginError(errorData.message || "Your account is inactive. Please contact support.");
+        } else {
+          setLoginError(errorData.message || 'Invalid credentials');
+        }
       }
     } catch (error) {
       console.error('Error during login:', error);
       setLoginError('An error occurred. Please try again.');
     }
   };
+  
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
@@ -112,9 +120,7 @@ const WelcomePage = () => {
   return (
     <div className="welcome-page">
       {/* Header */}
-      <CustomNavbar 
-        onLoginClick={handleLoginClick} 
-      />
+      <CustomNavbar onLoginClick={handleLoginClick} />
 
       {/* Main Content */}
       <Container className="main-content text-center py-5">
@@ -218,13 +224,11 @@ const WelcomePage = () => {
               />
             </Form.Group>
             {registerError && <div className="text-danger mb-3">{registerError}</div>}
-            <Button
-              variant="primary"
-              type="submit"
-              className="w-100"
-              disabled={!isRegisterFormValid}
-            >
+            <Button variant="primary" type="submit" disabled={!isRegisterFormValid} >
               Register
+            </Button>
+            <Button type="button" variant="secondary" onClick={handleClose}>
+              Cancel
             </Button>
           </Form>
         </Modal.Body>
