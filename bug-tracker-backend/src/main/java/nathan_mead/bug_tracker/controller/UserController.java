@@ -17,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 
 import jakarta.validation.Valid;
 
@@ -62,11 +63,19 @@ public class UserController {
 
     // POST endpoint to create a new user using UserDto
     @PostMapping("/register")
-    public ResponseEntity<User> createUser(@Valid @RequestBody UserDto userDto) {
+    public ResponseEntity<?> createUser(@Valid @RequestBody UserDto userDto) {
         logger.info("new user = {}", userDto);
         logger.info("Registering new user at /api/users/register");
+
+        // Normalize the email and check if the user already exists
+        String email = userDto.getEmail().toLowerCase();
+        if (userRepository.findByEmail(email).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("A user with this email already exists.");
+        }
+
         User user = new User();
-        user.setEmail(userDto.getEmail());
+        user.setEmail(email);
         user.setFirstName(userDto.getFirstName());
         user.setLastName(userDto.getLastName());
         user.setPassword(hashPassword(userDto.getPassword()));
@@ -79,7 +88,7 @@ public class UserController {
                 user.setRole(userRoleOpt.get());
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(null);
+                        .body("Invalid user role.");
             }
         }
 
@@ -110,47 +119,50 @@ public class UserController {
         return ResponseEntity.ok(updatedUser);
     }
 
-    // PUT endpoint to update an existing user using UserDto
+    // PUT endpoint to update an existing users status
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody UserDto userDto) {
+    public ResponseEntity<User> updateUserStatus(@PathVariable Long id, @RequestBody String status) {
+
         Optional<User> userOpt = userRepository.findById(id);
         if (!userOpt.isPresent()) {
             return ResponseEntity.notFound().build();
         }
+
         User user = userOpt.get();
 
-        // Get the authenticated user's email and authorities
-        String authenticatedUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equalsIgnoreCase("ROLE_ADMIN"));
-
-        // Allow update if the user is an admin or if the user is updating their own record
-        if (!isAdmin && !user.getEmail().equals(authenticatedUserEmail)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        // Update basic fields
-        user.setEmail(userDto.getEmail());
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
-        user.setStatus(userDto.getStatus());
-
-        logger.info("new user = {}", userDto);
-        // Update User Role if user role is provided
-        if (userDto.getUserRoleId() != null) {
-            if (!isAdmin) {
-                // Non-admin users are not permitted to change roles.
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-            Optional<UserRole> userRoleOpt = userRoleRepository.findById(userDto.getUserRoleId());
-            if (userRoleOpt.isPresent()) {
-                user.setRole(userRoleOpt.get());
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-            }
-        }
-
+        user.setStatus(status);
         User updatedUser = userRepository.save(user);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    // PUT endpoint to update an existing user's role
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}/role")
+    public ResponseEntity<?> updateUserRole(@PathVariable Long id, @RequestBody Map<String, Long> requestBody) {
+        // Retrieve the new role id from the request body
+        Long userRoleId = requestBody.get("userRoleId");
+        if (userRoleId == null) {
+            return ResponseEntity.badRequest().body("Missing userRoleId in request body.");
+        }
+        
+        // Find the user by id
+        Optional<User> userOpt = userRepository.findById(id);
+        if (!userOpt.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        // Find the role by the provided role id
+        Optional<UserRole> roleOpt = userRoleRepository.findById(userRoleId);
+        if (!roleOpt.isPresent()) {
+            return ResponseEntity.badRequest().body("Invalid userRoleId.");
+        }
+        
+        // Update the user's role and save
+        User user = userOpt.get();
+        user.setRole(roleOpt.get());
+        User updatedUser = userRepository.save(user);
+        
         return ResponseEntity.ok(updatedUser);
     }
 

@@ -2,8 +2,6 @@ package nathan_mead.bug_tracker.controller;
 
 import nathan_mead.bug_tracker.model.Status;
 import nathan_mead.bug_tracker.repository.StatusRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +16,6 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/statuses")
 public class StatusController {
-
-    private static final Logger logger = LoggerFactory.getLogger(StatusController.class);
 
     @Autowired
     private StatusRepository statusRepository;
@@ -47,20 +43,37 @@ public class StatusController {
     // POST endpoint to create a new status
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<Status> createStatus(@Valid @RequestBody Status status) {
+    public ResponseEntity<?> createStatus(@Valid @RequestBody Status status) {
+        String statusLabel = status.getStatusLabel().toLowerCase();
+
+        if (statusRepository.findByStatusLabel(statusLabel).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("A status with this label already exists.");
+        }
+
         Status created = statusRepository.save(status);
+        
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     // PUT endpoint to update an existing status
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<Status> updateStatus(@PathVariable Long id, @Valid @RequestBody Status statusDetails) {
+    public ResponseEntity<?> updateStatus(@PathVariable Long id, @Valid @RequestBody Status statusDetails) {
         Optional<Status> existingStatusOpt = statusRepository.findById(id);
         if (!existingStatusOpt.isPresent()) {
             return ResponseEntity.notFound().build();
         }
+
         Status existingStatus = existingStatusOpt.get();
+
+        String updatedStatusLabel = statusDetails.getStatusLabel().toLowerCase();
+
+        if (!existingStatus.getStatusLabel().equals(updatedStatusLabel) && statusRepository.findByStatusLabel(updatedStatusLabel).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("A status with this label already exists.");
+        }
+
         existingStatus.setStatusLabel(statusDetails.getStatusLabel());
         existingStatus.setStatus(statusDetails.getStatus());
         Status updated = statusRepository.save(existingStatus);

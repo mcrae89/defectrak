@@ -1,14 +1,14 @@
 DROP TABLE IF EXISTS priorities;
 CREATE TABLE priorities (
     id SERIAL PRIMARY KEY,
-    level VARCHAR(25) NOT NULL,
+    level VARCHAR(25) NOT NULL UNIQUE,
     status VARCHAR(25) NOT NULL DEFAULT 'active'
 );
 
 DROP TABLE IF EXISTS user_roles;
 CREATE TABLE user_roles (
     id SERIAL PRIMARY KEY,
-    role VARCHAR(25) NOT NULL,
+    role VARCHAR(25) NOT NULL UNIQUE,
     status VARCHAR(25) NOT NULL DEFAULT 'active'
 );
 
@@ -19,7 +19,7 @@ CREATE TABLE users (
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role_id INTEGER NOT NULL,
+    role_id INTEGER NOT NULL default 2,
     status VARCHAR(25) NOT NULL DEFAULT 'active',
     CONSTRAINT fk_role FOREIGN KEY (role_id) REFERENCES user_roles(id)
 );
@@ -27,7 +27,7 @@ CREATE TABLE users (
 DROP TABLE IF EXISTS statuses;
 CREATE TABLE statuses (
     id SERIAL PRIMARY KEY,
-    status_label VARCHAR(25) NOT NULL,
+    status_label VARCHAR(25) NOT NULL UNIQUE,
     status VARCHAR(25) NOT NULL DEFAULT 'active'
 );
 

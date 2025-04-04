@@ -18,4 +18,4 @@ VALUES
 
 INSERT INTO bugs (title, description, priority_id, status_id, assignee_user_id, created_by_user_id)
 VALUES
-('Bug 1', 'This is a bug', 1, 1, 2, 1), ('Bug 2', 'This is a bug', 2, 1, 2, 1), ('Bug 3', 'This is a bug', 3, 1, 2, 1);
+('Bug 1', 'This is a bug', 1, 1, 1, 2), ('Bug 2', 'This is a bug', 2, 1, 1, 2), ('Bug 3', 'This is a bug', 3, 1, 1, 2);
