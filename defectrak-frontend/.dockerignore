@@ -1,0 +1,20 @@
+# Ignore dependencies and build output
+node_modules
+build
+
+# IDE/editor junk
+.vscode
+.idea
+*.iml
+
+# Logs and env
+npm-debug.log
+.env
+
+# Git-related
+.git
+.gitignore
+
+# Docker
+.dockerignore
+Dockerfile

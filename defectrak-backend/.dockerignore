@@ -1,0 +1,25 @@
+# Maven build output
+target
+*.jar
+
+# Maven wrapper and config
+.mvn
+mvnw
+mvnw.cmd
+
+# IDE/editor junk
+.vscode
+.idea
+*.iml
+
+# Logs and env
+*.log
+.env
+
+# Git-related
+.git
+.gitignore
+
+# Docker
+.dockerignore
+Dockerfile
