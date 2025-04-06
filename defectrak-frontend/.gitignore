@@ -1,0 +1,35 @@
+# Node modules and dependencies
+node_modules/
+
+# React build output
+build/
+dist/
+
+# Public build artifacts (if applicable)
+public/build/
+
+# Log files for Node and npm/yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables (adjust as needed)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Coverage directory (if using a testing tool like Jest)
+coverage/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+
+# Nginx logs and temporary files (if generated locally)
+nginx/logs/
+nginx/cache/
