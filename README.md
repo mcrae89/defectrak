@@ -67,4 +67,5 @@ Feel free to open issues or submit pull requests for enhancements or bug fixes. 
 COMING SOON:
 OpenAI integration;
 RabbitMQ Integration;
+OAuth2.0;
 And More!
