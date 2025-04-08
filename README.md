@@ -63,3 +63,8 @@ defectrak/
 Contributing
 
 Feel free to open issues or submit pull requests for enhancements or bug fixes. Contributions are always welcome!
+
+COMING SOON:
+OpenAI integration
+RabbitMQ Integration
+And More!
