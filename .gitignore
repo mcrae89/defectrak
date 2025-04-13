@@ -10,9 +10,6 @@
 .DS_Store
 Thumbs.db
 
-# Docker ignore files
-.dockerignore
-
 # IntelliJ project files
 *.iml
 *.ipr
