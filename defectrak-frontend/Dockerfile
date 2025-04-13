@@ -7,7 +7,11 @@ RUN npm config set registry https://registry.npmjs.org/ && \
     npm cache clean --force && \
     npm install --unsafe-perm
 COPY . .
-RUN npm run build
+
+ARG REACT_APP_SYNCFUSION_LICENSE
+ENV REACT_APP_SYNCFUSION_LICENSE=$REACT_APP_SYNCFUSION_LICENSE
+
+RUN REACT_APP_SYNCFUSION_LICENSE=$REACT_APP_SYNCFUSION_LICENSE npm run build
 
 # Stage 2: Serve the React App with Nginx
 FROM nginx:alpine

@@ -1,6 +1,6 @@
 # Maven build output
-target
-*.jar
+target/
+!target/defectrak-0.0.1-SNAPSHOT.jar
 
 # Maven wrapper and config
 .mvn

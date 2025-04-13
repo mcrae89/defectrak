@@ -1,0 +1,23 @@
+# Environment variables
+.env
+.env.*
+
+# Editor settings
+.vscode/
+.idea/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Docker ignore files
+.dockerignore
+
+# IntelliJ project files
+*.iml
+*.ipr
+*.iws
+
+# Misc
+*.log
+*.swp
